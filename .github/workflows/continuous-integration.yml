@@ -1,0 +1,39 @@
+name: "Continuous Integration"
+
+on:
+  push:
+    branches: ["main"]
+
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  php-checks:
+    name: PHP Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout Code"
+        uses: "actions/checkout@v3"
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          coverage: "xdebug"
+          php-version: "8.3"
+          ini-values: memory_limit=-1
+          tools: composer:v2
+      - name: "Cache Dependencies"
+        uses: "actions/cache@v2"
+        with:
+          path: |
+            ~/.composer/cache
+          key: "composer-cache"
+          restore-keys: "composer-cache"
+      - name: "Install Dependencies"
+        run: "composer install --ansi --no-interaction --no-progress --no-suggest"
+      - name: "Run Continuous Integration"
+        run: composer ci
+      - name: "Upload Coverage Report"
+        uses: actions/upload-artifact@v4
+        with:
+          name: "coverage-report"
+          path: .dev/coverage

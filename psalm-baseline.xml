@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="6.8.6@34ba9e1e5ea2e7396d3e2e644ee3e3a1d4336603">
+  <file src="tests/StandardLedgerTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[$accountBalances]]></code>
+      <code><![CDATA[$accounts]]></code>
+      <code><![CDATA[$clock]]></code>
+      <code><![CDATA[$ledger]]></code>
+      <code><![CDATA[$transfers]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+</files>

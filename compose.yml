@@ -1,0 +1,42 @@
+name: "castor-php-lib"
+
+services:
+
+  ledgering: &php
+    image: castor/ledgering:dev
+    build:
+      context: .dev/docker/php
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        UID: ${UID:-1000}
+    user: ${UID:-1000}
+    restart: unless-stopped
+    depends_on:
+      ledgering-init:
+        condition: service_completed_successfully
+    working_dir: /castor/ledgering
+    environment:
+      DATABASE_URI: 'postgres://user:secret@ledgering-postgres/tests'
+      XDEBUG_MODE: 'coverage'
+    volumes:
+      - ./:/castor/ledgering
+    command: ["php", "-S", "0.0.0.0:8000", "-t", ".dev/coverage"]
+
+  ledgering-init:
+    <<: *php
+    depends_on: []
+    restart: no
+    command: [".dev/init"]
+
+  ledgering-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: 'tests'
+      POSTGRES_USER: 'user'
+      POSTGRES_PASSWORD: 'secret'
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5

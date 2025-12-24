@@ -1,0 +1,73 @@
+{
+  "name": "castor/ledgering",
+  "description": "Double-entry bookkeeping library for PHP",
+  "keywords": [
+    "castor",
+    "ledger",
+    "accounting",
+    "double-entry",
+    "bookkeeping",
+    "php",
+    "php83"
+  ],
+  "homepage": "https://github.com/castor-labs/php-lib-ledgering",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Matias Navarro-Carter",
+      "email": "mnavarrocarter@gmail.com",
+      "role": "Lead Maintainer"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Castor\\Ledgering\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Castor\\Ledgering\\": "tests"
+    }
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://castor-labs.github.io/php-packages"
+    }
+  ],
+  "require": {
+    "php": ">=8.3",
+    "castor/functions": "^1.0",
+    "doctrine/dbal": "^4.2",
+    "nikic/php-parser": "^5.4"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.5",
+    "friendsofphp/php-cs-fixer": "^3.69",
+    "vimeo/psalm": "^6.8",
+    "castor/code-style": "^1.0"
+  },
+  "scripts": {
+    "pr": [
+      "@fmt",
+      "@psalm",
+      "@test"
+    ],
+    "ci": [
+      "@fmt:check",
+      "@psalm:gh",
+      "@test"
+    ],
+    "fmt": "php-cs-fixer fix --diff --ansi",
+    "fmt:check": "php-cs-fixer fix --dry-run --diff --ansi",
+    "test": "phpunit --colors",
+    "test:unit": "phpunit --colors --exclude-group=integration --exclude-group=e2e",
+    "test:e2e": "phpunit --colors --group=e2e",
+    "test:integration": "phpunit --colors --group=integration",
+    "psalm": "psalm --no-cache --threads=5 --use-baseline",
+    "psalm:gh": "psalm --no-cache --threads=5 --long-progress --output-format=github --use-baseline",
+    "psalm:fix": "psalm --update-baseline",
+    "psalm:allow": "psalm --set-baseline=psalm-baseline.xml"
+  }
+}

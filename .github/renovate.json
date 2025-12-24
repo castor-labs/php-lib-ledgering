@@ -1,0 +1,82 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:base",
+        ":enableVulnerabilityAlerts",
+        ":semanticCommits",
+        ":semanticCommitTypeAll(chore)",
+        ":prHourlyLimitNone",
+        ":prImmediately"
+    ],
+    "automerge": true,
+    "automergeStrategy": "squash",
+    "automergeType": "pr",
+    "lockFileMaintenance": {
+        "enabled": true,
+        "schedule": "before 11am every day"
+    },
+    "platformAutomerge": true,
+    "rangeStrategy": "in-range-only",
+    "rebaseWhen": "conflicted",
+    "customManagers": [
+        {
+            "customType": "regex",
+            "fileMatch": [
+                "^Dockerfile"
+            ],
+            "matchStrings": [
+                "^ARG COMPOSER_VERSION=\\s*[\"']?(?<currentValue>.+?)[\"']?\\s$"
+            ],
+            "depNameTemplate": "composer/composer",
+            "datasourceTemplate": "github-releases"
+        }
+    ],
+    "packageRules": [
+        {
+            "matchPackagePatterns": ["*"],
+            "enabled": false
+        },
+        {
+            "matchManagers": ["docker-compose", "dockerfile"],
+            "enabled": true,
+            "groupName": "docker",
+            "rangeStrategy": "bump"
+        },
+        {
+            "matchManagers": ["composer"],
+            "matchDepTypes": ["require"],
+            "enabled": true,
+            "groupName": "Composer runtime dependencies",
+            "groupSlug": "composer-runtime"
+        },
+        {
+            "matchManagers": ["composer"],
+            "matchDepTypes": ["require-dev"],
+            "enabled": true,
+            "groupName": "Composer dev dependencies",
+            "groupSlug": "composer-dev"
+        },
+        {
+            "matchManagers": ["github-actions"],
+            "enabled": true,
+            "groupName": "GitHub Actions dependencies",
+            "groupSlug": "github-actions",
+            "rangeStrategy": "bump"
+        },
+        {
+            "matchDatasources": ["github-releases"],
+            "matchDepNames": ["composer/composer"],
+            "enabled": true,
+            "rangeStrategy": "bump"
+        },
+        {
+            "matchDatasources": ["docker"],
+            "matchDepNames": [
+                "alpine",
+                "php"
+            ],
+            "matchUpdateTypes": ["major", "minor"],
+            "enabled": false
+        }
+    ]
+}

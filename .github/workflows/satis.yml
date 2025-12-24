@@ -1,0 +1,27 @@
+name: "Satis"
+
+on:
+  release:
+    types: ["published"]
+
+  workflow_dispatch:
+
+jobs:
+  release-package:
+    name: Release Package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start Workflow
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.ORG_GITHUB_TOKEN }}
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: 'castor-labs',
+              repo: 'php-packages',
+              workflow_id: 'satis.build.yml',
+              ref: 'main',
+              inputs: {
+                repository: context.repo.repo
+              }
+            });

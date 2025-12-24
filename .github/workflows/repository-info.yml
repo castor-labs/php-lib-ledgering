@@ -1,0 +1,51 @@
+name: "Repository Info"
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - '.github/workflows/repository-info.yml'
+      - 'composer.json'
+
+  workflow_dispatch:
+
+jobs:
+  sync-info:
+    name: 'Sync Repository Info'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Extract Description from composer.json
+        uses: sergeysova/jq-action@v2
+        id: description
+        with:
+          cmd: 'jq .description composer.json -r'
+      - name: Extract Homepage from composer.json
+        uses: sergeysova/jq-action@v2
+        id: homepage
+        with:
+          cmd: 'jq .homepage composer.json -r'
+      - name: Extract Keywords from composer.json
+        uses: sergeysova/jq-action@v2
+        id: keywords
+        with:
+          cmd: jq -c .keywords composer.json
+      - name: Update Details
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.ORG_GITHUB_TOKEN }}
+          script: |
+            github.rest.repos.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              description: '${{ steps.description.outputs.value }}',
+              homepage: '${{ steps.homepage.outputs.value }}'
+            });
+            
+            github.rest.repos.replaceAllTopics({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              names: JSON.parse('${{ steps.keywords.outputs.value }}')
+            });
+

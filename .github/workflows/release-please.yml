@@ -1,0 +1,37 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+      - releases/**
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: "release-${{ github.ref_name }}"
+
+jobs:
+  manage-release:
+    runs-on: ubuntu-latest
+    name: Manage Release
+    steps:
+      - uses: actions/create-github-app-token@v1
+        name: "Call Mr Piper"
+        id: generate-token
+        with:
+          app-id: 938088
+          private-key: ${{ secrets.MR_PIPER_APP_PRIVATE_KEY }}
+
+      - uses: googleapis/release-please-action@v4
+        name: "Run Release Tasks"
+        id: release
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          config-file: .github/release-please-config.json
+          manifest-file: .github/.release-please-manifest.json
+          include-component-in-tag: false
+          target-branch: ${{ github.ref_name }}
