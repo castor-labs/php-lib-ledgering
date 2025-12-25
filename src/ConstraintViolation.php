@@ -21,49 +21,19 @@ namespace Castor\Ledgering;
  *
  * This exception represents business rule violations in the ledger system.
  */
-final class ConstraintViolation extends \RuntimeException
+final class ConstraintViolation extends \Exception
 {
-	// Account-related errors
-	public const string ACCOUNT_ALREADY_EXISTS = 'account_already_exists';
-
-	public const string ACCOUNT_NOT_FOUND = 'account_not_found';
-
-	public const string ACCOUNT_CLOSED = 'account_closed';
-
-	// Transfer-related errors
-	public const string TRANSFER_ALREADY_EXISTS = 'transfer_already_exists';
-
-	public const string PENDING_TRANSFER_NOT_FOUND = 'pending_transfer_not_found';
-
-	public const string PENDING_TRANSFER_EXPIRED = 'pending_transfer_expired';
-
-	// Balance constraint errors
-	public const string DEBITS_EXCEED_CREDITS = 'debits_exceed_credits';
-
-	public const string CREDITS_EXCEED_DEBITS = 'credits_exceed_debits';
-
-	public const string INSUFFICIENT_PENDING_BALANCE = 'insufficient_pending_balance';
-
-	// Validation errors
-	public const string SAME_DEBIT_AND_CREDIT_ACCOUNT = 'same_debit_and_credit_account';
-
-	public const string LEDGER_MISMATCH = 'ledger_mismatch';
-
-	public const string ZERO_AMOUNT = 'zero_amount';
-
-	public const string PENDING_ID_REQUIRED = 'pending_id_required';
-
 	private function __construct(
-		public readonly string $errorCode,
+		public readonly ErrorCode $errorCode,
 		string $message,
 	) {
-		parent::__construct($message);
+		parent::__construct($message, $errorCode->value);
 	}
 
 	public static function accountAlreadyExists(Identifier $id): self
 	{
 		return new self(
-			self::ACCOUNT_ALREADY_EXISTS,
+			ErrorCode::AccountAlreadyExists,
 			\sprintf('Account with ID %s already exists', $id->toHex()),
 		);
 	}
@@ -71,7 +41,7 @@ final class ConstraintViolation extends \RuntimeException
 	public static function accountNotFound(Identifier $id): self
 	{
 		return new self(
-			self::ACCOUNT_NOT_FOUND,
+			ErrorCode::AccountNotFound,
 			\sprintf('Account with ID %s not found', $id->toHex()),
 		);
 	}
@@ -79,7 +49,7 @@ final class ConstraintViolation extends \RuntimeException
 	public static function accountClosed(Identifier $id): self
 	{
 		return new self(
-			self::ACCOUNT_CLOSED,
+			ErrorCode::AccountClosed,
 			\sprintf('Account with ID %s is closed', $id->toHex()),
 		);
 	}
@@ -87,7 +57,7 @@ final class ConstraintViolation extends \RuntimeException
 	public static function transferAlreadyExists(Identifier $id): self
 	{
 		return new self(
-			self::TRANSFER_ALREADY_EXISTS,
+			ErrorCode::TransferAlreadyExists,
 			\sprintf('Transfer with ID %s already exists', $id->toHex()),
 		);
 	}
@@ -95,7 +65,7 @@ final class ConstraintViolation extends \RuntimeException
 	public static function pendingTransferNotFound(Identifier $pendingId): self
 	{
 		return new self(
-			self::PENDING_TRANSFER_NOT_FOUND,
+			ErrorCode::PendingTransferNotFound,
 			\sprintf('Pending transfer with ID %s not found', $pendingId->toHex()),
 		);
 	}
@@ -103,7 +73,7 @@ final class ConstraintViolation extends \RuntimeException
 	public static function pendingTransferExpired(Identifier $pendingId): self
 	{
 		return new self(
-			self::PENDING_TRANSFER_EXPIRED,
+			ErrorCode::PendingTransferExpired,
 			\sprintf('Pending transfer with ID %s has expired', $pendingId->toHex()),
 		);
 	}
@@ -111,7 +81,7 @@ final class ConstraintViolation extends \RuntimeException
 	public static function debitsExceedCredits(Identifier $accountId): self
 	{
 		return new self(
-			self::DEBITS_EXCEED_CREDITS,
+			ErrorCode::DebitsExceedCredits,
 			\sprintf('Account %s: debits would exceed credits', $accountId->toHex()),
 		);
 	}
@@ -119,7 +89,7 @@ final class ConstraintViolation extends \RuntimeException
 	public static function creditsExceedDebits(Identifier $accountId): self
 	{
 		return new self(
-			self::CREDITS_EXCEED_DEBITS,
+			ErrorCode::CreditsExceedDebits,
 			\sprintf('Account %s: credits would exceed debits', $accountId->toHex()),
 		);
 	}
@@ -127,7 +97,7 @@ final class ConstraintViolation extends \RuntimeException
 	public static function insufficientPendingBalance(Identifier $accountId): self
 	{
 		return new self(
-			self::INSUFFICIENT_PENDING_BALANCE,
+			ErrorCode::InsufficientPendingBalance,
 			\sprintf('Account %s: insufficient pending balance', $accountId->toHex()),
 		);
 	}
@@ -135,7 +105,7 @@ final class ConstraintViolation extends \RuntimeException
 	public static function sameDebitAndCreditAccount(Identifier $accountId): self
 	{
 		return new self(
-			self::SAME_DEBIT_AND_CREDIT_ACCOUNT,
+			ErrorCode::SameDebitAndCreditAccount,
 			\sprintf('Debit and credit account cannot be the same: %s', $accountId->toHex()),
 		);
 	}
@@ -143,7 +113,7 @@ final class ConstraintViolation extends \RuntimeException
 	public static function ledgerMismatch(Code $debitLedger, Code $creditLedger): self
 	{
 		return new self(
-			self::LEDGER_MISMATCH,
+			ErrorCode::LedgerMismatch,
 			\sprintf('Debit account ledger %d does not match credit account ledger %d', $debitLedger->value, $creditLedger->value),
 		);
 	}
@@ -151,7 +121,7 @@ final class ConstraintViolation extends \RuntimeException
 	public static function zeroAmount(): self
 	{
 		return new self(
-			self::ZERO_AMOUNT,
+			ErrorCode::ZeroAmount,
 			'Transfer amount cannot be zero',
 		);
 	}
@@ -159,8 +129,48 @@ final class ConstraintViolation extends \RuntimeException
 	public static function pendingIdRequired(): self
 	{
 		return new self(
-			self::PENDING_ID_REQUIRED,
+			ErrorCode::PendingIdRequired,
 			'Pending ID is required for POST_PENDING and VOID_PENDING transfers',
+		);
+	}
+
+	public static function mutuallyExclusiveFlags(string ...$flags): self
+	{
+		return new self(
+			ErrorCode::InvalidFlags,
+			\sprintf('Flags %s are mutually exclusive', \implode(', ', $flags)),
+		);
+	}
+
+	public static function cannotCombine(Identifier $accountId): self
+	{
+		return new self(
+			ErrorCode::AccountClosed,
+			\sprintf('Account %s is closed', $accountId->toHex()),
+		);
+	}
+
+	public static function closingRequiresPending(): self
+	{
+		return new self(
+			ErrorCode::InvalidFlags,
+			'CLOSING_DEBIT and CLOSING_CREDIT require PENDING flag',
+		);
+	}
+
+	public static function postAndVoidPendingCannotBeCombinedWithBalancing(): self
+	{
+		return new self(
+			ErrorCode::InvalidFlags,
+			'POST_PENDING and VOID_PENDING cannot be combined with balancing flags',
+		);
+	}
+
+	public static function pendingCannotBeCombinedWithPostOrVoid(): self
+	{
+		return new self(
+			ErrorCode::InvalidFlags,
+			'PENDING cannot be combined with POST_PENDING or VOID_PENDING',
 		);
 	}
 }

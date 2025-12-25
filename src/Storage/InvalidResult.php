@@ -17,9 +17,9 @@ declare(strict_types=1);
 namespace Castor\Ledgering\Storage;
 
 /**
- * Exception thrown when a storage operation fails.
+ * Exception thrown when the result of a storage operation is invalid.
  */
-final class StorageError extends \RuntimeException
+final class InvalidResult extends \Exception
 {
 	public static function emptyReader(): self
 	{

@@ -79,7 +79,7 @@ final class StandardLedgerTest extends TestCase
 		$this->ledger->execute($command);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('already exists');
+		$this->expectExceptionCode(ErrorCode::AccountAlreadyExists->value);
 
 		$this->ledger->execute($command);
 	}
@@ -170,7 +170,7 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('cannot be the same');
+		$this->expectExceptionCode(ErrorCode::SameDebitAndCreditAccount->value);
 
 		$this->ledger->execute($command);
 	}
@@ -193,7 +193,7 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('cannot be zero');
+		$this->expectExceptionCode(ErrorCode::ZeroAmount->value);
 
 		$this->ledger->execute($command);
 	}
@@ -215,7 +215,7 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('not found');
+		$this->expectExceptionCode(ErrorCode::AccountNotFound->value);
 
 		$this->ledger->execute($command);
 	}
@@ -237,7 +237,7 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('not found');
+		$this->expectExceptionCode(ErrorCode::AccountNotFound->value);
 
 		$this->ledger->execute($command);
 	}
@@ -260,11 +260,14 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('does not match');
+		$this->expectExceptionCode(ErrorCode::LedgerMismatch->value);
 
 		$this->ledger->execute($command);
 	}
 
+	/**
+	 * TODO: We should also test for CreditsExceedDebits constraint.
+	 */
 	#[Test]
 	public function it_enforces_debits_must_not_exceed_credits_constraint(): void
 	{
@@ -283,7 +286,7 @@ final class StandardLedgerTest extends TestCase
 			),
 		);
 
-		// First transfer should fail (no credits yet)
+		// The first transfer should fail (no credits yet)
 		$command = CreateTransfer::with(
 			id: TestIdentifiers::transferOne(),
 			debitAccountId: TestIdentifiers::accountOne(),
@@ -294,7 +297,7 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('would exceed credits');
+		$this->expectExceptionCode(ErrorCode::DebitsExceedCredits->value);
 
 		$this->ledger->execute($command);
 	}
@@ -365,13 +368,13 @@ final class StandardLedgerTest extends TestCase
 			id: TestIdentifiers::transferOne(),
 			debitAccountId: TestIdentifiers::accountTwo(),
 			creditAccountId: TestIdentifiers::accountOne(),
-			amount: Amount::of(1000),
+			amount: 1000,
 			ledger: 1,
 			code: 1,
 		);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('would exceed debits');
+		$this->expectExceptionCode(ErrorCode::CreditsExceedDebits->value);
 
 		$this->ledger->execute($command);
 	}
@@ -403,7 +406,7 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('is closed');
+		$this->expectExceptionCode(ErrorCode::AccountClosed->value);
 
 		$this->ledger->execute($command);
 	}
@@ -435,7 +438,7 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('is closed');
+		$this->expectExceptionCode(ErrorCode::AccountClosed->value);
 
 		$this->ledger->execute($command);
 	}
@@ -508,7 +511,7 @@ final class StandardLedgerTest extends TestCase
 
 	/**
 	 * TODO: I think we also need to test that we can post less than the pending amount and the difference from the
-	 *  pending amount is freed from the pending amount. Check if this is Tiger Beetle's behavior.
+	 *  transfer amount is freed from the pending amount. Check if this is Tiger Beetle's behavior.
 	 */
 	#[Test]
 	public function it_posts_pending_transfer(): void
@@ -619,11 +622,14 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('Pending ID is required');
+		$this->expectExceptionCode(ErrorCode::PendingIdRequired->value);
 
 		$this->ledger->execute($command);
 	}
 
+	/**
+	 * TODO: We also need to test that when the pending transfer has already been posted or voided, we throw an error.
+	 */
 	#[Test]
 	public function it_rejects_post_pending_when_pending_transfer_not_found(): void
 	{
@@ -644,7 +650,7 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('not found');
+		$this->expectExceptionCode(ErrorCode::PendingTransferNotFound->value);
 
 		$this->ledger->execute($command);
 	}
@@ -846,7 +852,7 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		$this->expectException(ConstraintViolation::class);
-		$this->expectExceptionMessage('would exceed credits');
+		$this->expectExceptionCode(ErrorCode::DebitsExceedCredits->value);
 
 		$this->ledger->execute($command);
 	}

@@ -27,6 +27,8 @@ interface Reader
 	 * Convert the collection to an array.
 	 *
 	 * @return array<T>
+	 *
+	 * @throws UnexpectedError if an unexpected error occurs
 	 */
 	public function toList(): array;
 
@@ -34,6 +36,8 @@ interface Reader
 	 * Convert the collection to an iterator.
 	 *
 	 * @return \Iterator<int, T>
+	 *
+	 * @throws UnexpectedError if an unexpected error occurs
 	 */
 	public function toIterator(): \Iterator;
 
@@ -45,6 +49,8 @@ interface Reader
 	 * @param callable(T): string $keyFn
 	 *
 	 * @return array<string, T>
+	 *
+	 * @throws UnexpectedError if an unexpected error occurs
 	 */
 	public function toMap(callable $keyFn): array;
 
@@ -57,6 +63,8 @@ interface Reader
 	 * @param callable(T): string $keyFn
 	 *
 	 * @return array<string, array<T>>
+	 *
+	 * @throws UnexpectedError if an unexpected error occurs
 	 */
 	public function toListMap(callable $keyFn): array;
 
@@ -72,6 +80,8 @@ interface Reader
 
 	/**
 	 * Get the number of items in the reader.
+	 *
+	 * @throws UnexpectedError if an unexpected error occurs
 	 */
 	public function count(): int;
 
@@ -79,6 +89,8 @@ interface Reader
 	 * Get the first item in the reader, or null if empty.
 	 *
 	 * @return T|null
+	 *
+	 * @throws UnexpectedError if an unexpected error occurs
 	 */
 	public function first(): mixed;
 
@@ -89,20 +101,22 @@ interface Reader
 	 *
 	 * @return T
 	 *
-	 * @throws StorageError if the reader is empty or has more than one item
+	 * @throws UnexpectedError if an unexpected error occurs
+	 * @throws InvalidResult if the reader is empty or contains more than one item
 	 */
 	public function one(): mixed;
 
 	/**
-	 * Get exactly n items from the reader.
+	 * Get exactly $n items from the reader.
 	 *
-	 * Throws an exception if the reader does not contain exactly n items.
+	 * Throws an exception if the reader does not contain exactly $n items.
 	 *
 	 * @param int $n Number of items to pick
 	 *
 	 * @return array<T>
 	 *
-	 * @throws StorageError if the reader does not contain exactly n items
+	 * @throws UnexpectedError if an unexpected error occurs
+	 * @throws InvalidResult if the reader does not contain exactly $n items
 	 */
 	public function pick(int $n): array;
 }

@@ -40,7 +40,8 @@ final class TransferFlagsTest extends TestCase
 	#[Test]
 	public function it_throws_when_pending_combined_with_post_pending(): void
 	{
-		$this->expectException(\InvalidArgumentException::class);
+		$this->expectException(ConstraintViolation::class);
+		$this->expectExceptionCode(ErrorCode::InvalidFlags->value);
 		$this->expectExceptionMessage('PENDING cannot be combined with POST_PENDING or VOID_PENDING');
 
 		TransferFlags::of(TransferFlags::PENDING | TransferFlags::POST_PENDING);
@@ -49,7 +50,8 @@ final class TransferFlagsTest extends TestCase
 	#[Test]
 	public function it_throws_when_pending_combined_with_void_pending(): void
 	{
-		$this->expectException(\InvalidArgumentException::class);
+		$this->expectException(ConstraintViolation::class);
+		$this->expectExceptionCode(ErrorCode::InvalidFlags->value);
 		$this->expectExceptionMessage('PENDING cannot be combined with POST_PENDING or VOID_PENDING');
 
 		TransferFlags::of(TransferFlags::PENDING | TransferFlags::VOID_PENDING);
@@ -58,8 +60,9 @@ final class TransferFlagsTest extends TestCase
 	#[Test]
 	public function it_throws_when_post_and_void_pending_combined(): void
 	{
-		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('POST_PENDING and VOID_PENDING are mutually exclusive');
+		$this->expectException(ConstraintViolation::class);
+		$this->expectExceptionCode(ErrorCode::InvalidFlags->value);
+		$this->expectExceptionMessage('Flags POST_PENDING, VOID_PENDING are mutually exclusive');
 
 		TransferFlags::of(TransferFlags::POST_PENDING | TransferFlags::VOID_PENDING);
 	}
@@ -67,7 +70,8 @@ final class TransferFlagsTest extends TestCase
 	#[Test]
 	public function it_throws_when_post_pending_combined_with_balancing(): void
 	{
-		$this->expectException(\InvalidArgumentException::class);
+		$this->expectException(ConstraintViolation::class);
+		$this->expectExceptionCode(ErrorCode::InvalidFlags->value);
 		$this->expectExceptionMessage('POST_PENDING and VOID_PENDING cannot be combined with balancing flags');
 
 		TransferFlags::of(TransferFlags::POST_PENDING | TransferFlags::BALANCING_DEBIT);
@@ -76,7 +80,8 @@ final class TransferFlagsTest extends TestCase
 	#[Test]
 	public function it_throws_when_closing_without_pending(): void
 	{
-		$this->expectException(\InvalidArgumentException::class);
+		$this->expectException(ConstraintViolation::class);
+		$this->expectExceptionCode(ErrorCode::InvalidFlags->value);
 		$this->expectExceptionMessage('CLOSING_DEBIT and CLOSING_CREDIT require PENDING flag');
 
 		TransferFlags::of(TransferFlags::CLOSING_DEBIT);

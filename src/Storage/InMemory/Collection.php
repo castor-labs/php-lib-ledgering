@@ -16,8 +16,8 @@ declare(strict_types=1);
 
 namespace Castor\Ledgering\Storage\InMemory;
 
+use Castor\Ledgering\Storage\InvalidResult;
 use Castor\Ledgering\Storage\Reader;
-use Castor\Ledgering\Storage\StorageError;
 
 /**
  * Base immutable collection implementation.
@@ -102,11 +102,11 @@ abstract class Collection implements Reader
 		$count = $this->count();
 
 		if ($count === 0) {
-			throw StorageError::emptyReader();
+			throw InvalidResult::emptyReader();
 		}
 
 		if ($count > 1) {
-			throw StorageError::multipleItemsFound($count);
+			throw InvalidResult::multipleItemsFound($count);
 		}
 
 		return $this->items[0];
@@ -118,7 +118,7 @@ abstract class Collection implements Reader
 		$count = $this->count();
 
 		if ($count !== $n) {
-			throw StorageError::unexpectedItemCount($n, $count);
+			throw InvalidResult::unexpectedItemCount($n, $count);
 		}
 
 		return $this->items;

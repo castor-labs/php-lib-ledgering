@@ -96,7 +96,7 @@ final readonly class TransferFlags
 	/**
 	 * Create flags from an integer value.
 	 *
-	 * @throws \InvalidArgumentException if flags are mutually exclusive
+	 * @throws ConstraintViolation if the flags are invalid
 	 */
 	public static function of(int $value): self
 	{
@@ -104,31 +104,26 @@ final readonly class TransferFlags
 
 		// PENDING is mutually exclusive with POST_PENDING and VOID_PENDING
 		if ($instance->isPending() && ($instance->isPostPending() || $instance->isVoidPending())) {
-			throw new \InvalidArgumentException(
-				'PENDING cannot be combined with POST_PENDING or VOID_PENDING',
-			);
+			throw ConstraintViolation::pendingCannotBeCombinedWithPostOrVoid();
 		}
 
 		// POST_PENDING and VOID_PENDING are mutually exclusive
 		if ($instance->isPostPending() && $instance->isVoidPending()) {
-			throw new \InvalidArgumentException(
-				'POST_PENDING and VOID_PENDING are mutually exclusive',
+			throw ConstraintViolation::mutuallyExclusiveFlags(
+				'POST_PENDING',
+				'VOID_PENDING',
 			);
 		}
 
 		// POST_PENDING and VOID_PENDING cannot be combined with balancing flags
 		if (($instance->isPostPending() || $instance->isVoidPending()) &&
 			($instance->isBalancingDebit() || $instance->isBalancingCredit())) {
-			throw new \InvalidArgumentException(
-				'POST_PENDING and VOID_PENDING cannot be combined with balancing flags',
-			);
+			throw ConstraintViolation::postAndVoidPendingCannotBeCombinedWithBalancing();
 		}
 
 		// Closing flags require PENDING
 		if (($instance->isClosingDebit() || $instance->isClosingCredit()) && !$instance->isPending()) {
-			throw new \InvalidArgumentException(
-				'CLOSING_DEBIT and CLOSING_CREDIT require PENDING flag',
-			);
+			throw ConstraintViolation::closingRequiresPending();
 		}
 
 		return $instance;

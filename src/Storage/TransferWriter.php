@@ -30,7 +30,7 @@ interface TransferWriter
 	 *
 	 * @param Transfer $transfer The transfer to write
 	 *
-	 * @throws StorageError if write operation fails
+	 * @throws UnexpectedError if write operation fails
 	 */
 	public function write(Transfer $transfer): void;
 }

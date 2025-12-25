@@ -58,8 +58,8 @@ final class AccountFlagsTest extends TestCase
 	#[Test]
 	public function it_throws_on_mutually_exclusive_flags(): void
 	{
-		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('mutually exclusive');
+		$this->expectException(ConstraintViolation::class);
+		$this->expectExceptionCode(ErrorCode::InvalidFlags->value);
 
 		AccountFlags::of(
 			AccountFlags::DEBITS_MUST_NOT_EXCEED_CREDITS | AccountFlags::CREDITS_MUST_NOT_EXCEED_DEBITS,

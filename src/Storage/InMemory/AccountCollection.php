@@ -83,9 +83,9 @@ final class AccountCollection extends Collection implements AccountReader, Accou
 	public function write(Account $account): void
 	{
 		// Find if account already exists and update it
-		foreach ($this->items as $index => $existing) {
+		foreach ($this->items as $i => $existing) {
 			if ($existing->id->equals($account->id)) {
-				$this->items[$index] = $account;
+				$this->items[$i] = $account;
 
 				return;
 			}

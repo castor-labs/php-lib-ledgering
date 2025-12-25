@@ -16,21 +16,7 @@ declare(strict_types=1);
 
 namespace Castor\Ledgering\Storage;
 
-use Castor\Ledgering\Account;
-
 /**
- * Writes accounts to storage.
- *
- * @internal You should not use this interface directly.
+ * Exception thrown when a storage operation fails.
  */
-interface AccountWriter
-{
-	/**
-	 * Write an account to storage.
-	 *
-	 * @param Account $account The account to write
-	 *
-	 * @throws UnexpectedError if write operation fails
-	 */
-	public function write(Account $account): void;
-}
+final class UnexpectedError extends \RuntimeException {}

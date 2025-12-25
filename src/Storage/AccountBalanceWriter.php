@@ -30,7 +30,7 @@ interface AccountBalanceWriter
 	 *
 	 * @param AccountBalance $balance The account balance to write
 	 *
-	 * @throws StorageError if write operation fails
+	 * @throws UnexpectedError if write operation fails
 	 */
 	public function write(AccountBalance $balance): void;
 }

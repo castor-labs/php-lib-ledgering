@@ -73,7 +73,7 @@ final readonly class AccountFlags
 	/**
 	 * Create flags from an integer value.
 	 *
-	 * @throws \InvalidArgumentException if flags are mutually exclusive
+	 * @throws ConstraintViolation if the flags are invalid
 	 */
 	public static function of(int $value): self
 	{
@@ -81,8 +81,9 @@ final readonly class AccountFlags
 
 		// Validate that flags are not mutually exclusive
 		if ($instance->debitsMusNotExceedCredits() && $instance->creditsMusNotExceedDebits()) {
-			throw new \InvalidArgumentException(
-				'DEBITS_MUST_NOT_EXCEED_CREDITS and CREDITS_MUST_NOT_EXCEED_DEBITS are mutually exclusive',
+			throw ConstraintViolation::mutuallyExclusiveFlags(
+				'DEBITS_MUST_NOT_EXCEED_CREDITS',
+				'CREDITS_MUST_NOT_EXCEED_DEBITS',
 			);
 		}
 
