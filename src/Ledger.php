@@ -26,5 +26,5 @@ interface Ledger
 	/**
 	 * Execute one or more ledger commands atomically.
 	 */
-	public function execute(CreateAccount|CreateTransfer ...$commands): void;
+	public function execute(CreateAccount|CreateTransfer|ExpirePendingTransfers ...$commands): void;
 }

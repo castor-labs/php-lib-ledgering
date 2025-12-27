@@ -71,4 +71,14 @@ final class FixedClock implements Clock
 	{
 		$this->time += $seconds;
 	}
+
+	/**
+	 * Sets the clock to a specific instant.
+	 *
+	 * @param Instant $instant The instant to set the clock to
+	 */
+	public function setNow(Instant $instant): void
+	{
+		$this->time = $instant->seconds;
+	}
 }

@@ -24,4 +24,8 @@
             <html outputDirectory=".dev/coverage"/>
         </report>
     </coverage>
+
+    <extensions>
+        <bootstrap class="Castor\Ledgering\PhpUnit\DatabaseExtension"/>
+    </extensions>
 </phpunit>

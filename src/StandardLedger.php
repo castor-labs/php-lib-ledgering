@@ -46,12 +46,13 @@ final readonly class StandardLedger implements Ledger
 	) {}
 
 	#[\Override]
-	public function execute(CreateAccount|CreateTransfer ...$commands): void
+	public function execute(CreateAccount|CreateTransfer|ExpirePendingTransfers ...$commands): void
 	{
 		foreach ($commands as $command) {
 			match ($command::class) {
 				CreateAccount::class => $this->createAccount($command),
 				CreateTransfer::class => $this->createTransfer($command),
+				ExpirePendingTransfers::class => $this->expirePendingTransfers($command),
 			};
 		}
 	}
@@ -331,9 +332,39 @@ final readonly class StandardLedger implements Ledger
 	}
 
 	/**
+	 * Expire all pending transfers that have exceeded their timeout.
+	 */
+	private function expirePendingTransfers(ExpirePendingTransfers $command): void
+	{
+		// Use the efficient expired() filter to get only expired pending transfers
+		// This filters for:
+		// - Pending transfers (PENDING flag set)
+		// - Not posted or voided (no POST_PENDING or VOID_PENDING flags)
+		// - Non-zero timeout
+		// - Expired: (timestamp + timeout) <= now
+		$expiredTransfers = $this->transfers->expired($command->asOf)->toList();
+
+		foreach ($expiredTransfers as $transfer) {
+			// Create a void transfer to expire this pending transfer
+			$this->voidPendingTransfer(
+				CreateTransfer::with(
+					id: Identifier::random(),
+					debitAccountId: $transfer->debitAccountId,
+					creditAccountId: $transfer->creditAccountId,
+					amount: 0, // Amount is ignored for VOID_PENDING
+					ledger: $transfer->ledger,
+					code: $transfer->code,
+					flags: TransferFlags::VOID_PENDING,
+					pendingId: $transfer->id,
+				),
+			);
+		}
+	}
+
+	/**
 	 * Load a pending transfer by ID.
 	 *
-	 * @throws ConstraintViolation if pending transfer not found or not pending
+	 * @throws ConstraintViolation if pending transfer isn't found or not pending
 	 */
 	private function loadPendingTransfer(Identifier $pendingId): Transfer
 	{
@@ -342,9 +373,24 @@ final readonly class StandardLedger implements Ledger
 			throw ConstraintViolation::pendingTransferNotFound($pendingId);
 		}
 
-		// TODO: Check timeout expiration
+		// Check if transfer has expired
+		if (!$transfer->timeout->isZero() && $this->isTransferExpired($transfer, $this->clock->now())) {
+			throw ConstraintViolation::pendingTransferExpired($pendingId);
+		}
 
 		return $transfer;
+	}
+
+	/**
+	 * Check if a transfer has expired based on its timeout.
+	 */
+	private function isTransferExpired(Transfer $transfer, Instant $asOf): bool
+	{
+		// Calculate expiration time: transfer.timestamp + transfer.timeout
+		$expirationSeconds = $transfer->timestamp->seconds + $transfer->timeout->seconds;
+
+		// Transfer is expired if the current time is after expiration time
+		return $asOf->seconds >= $expirationSeconds;
 	}
 
 	/**

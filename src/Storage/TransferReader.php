@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Castor\Ledgering\Storage;
 
 use Castor\Ledgering\Identifier;
+use Castor\Ledgering\Time\Instant;
 use Castor\Ledgering\Transfer;
 
 /**
@@ -46,4 +47,31 @@ interface TransferReader extends Reader
 	 * @param Identifier ...$ids One or more secondary external IDs to filter by
 	 */
 	public function ofExternalIdSecondary(Identifier ...$ids): self;
+
+	/**
+	 * Filter transfers by their debit account IDs.
+	 *
+	 * @param Identifier ...$ids One or more debit account IDs to filter by
+	 */
+	public function ofDebitAccount(Identifier ...$ids): self;
+
+	/**
+	 * Filter transfers by their credit account IDs.
+	 *
+	 * @param Identifier ...$ids One or more credit account IDs to filter by
+	 */
+	public function ofCreditAccount(Identifier ...$ids): self;
+
+	/**
+	 * Filter expired pending transfers.
+	 *
+	 * Returns only pending transfers (PENDING flag set) that have:
+	 * - A non-zero timeout
+	 * - Not been posted or voided (no other transfer exists with POST_PENDING or VOID_PENDING
+	 *   flags that references this transfer's ID via pendingId)
+	 * - Exceeded their timeout: (timestamp + timeout) <= now
+	 *
+	 * @param Instant $now The current time to check expiration against
+	 */
+	public function expired(Instant $now): self;
 }

@@ -47,6 +47,16 @@ final readonly class Identifier
 	}
 
 	/**
+	 * Create a random identifier using cryptographically secure random bytes.
+	 *
+	 * @throws \Exception if random bytes cannot be generated
+	 */
+	public static function random(): self
+	{
+		return new self(\random_bytes(self::BYTE_LENGTH));
+	}
+
+	/**
 	 * Create an identifier from raw bytes.
 	 *
 	 * @throws \InvalidArgumentException if not exactly 16 bytes

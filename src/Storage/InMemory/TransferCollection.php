@@ -19,6 +19,7 @@ namespace Castor\Ledgering\Storage\InMemory;
 use Castor\Ledgering\Identifier;
 use Castor\Ledgering\Storage\TransferReader;
 use Castor\Ledgering\Storage\TransferWriter;
+use Castor\Ledgering\Time\Instant;
 use Castor\Ledgering\Transfer;
 
 /**
@@ -75,6 +76,75 @@ final class TransferCollection extends Collection implements TransferReader, Tra
 				}
 
 				return false;
+			},
+		);
+	}
+
+	#[\Override]
+	public function ofDebitAccount(Identifier ...$ids): self
+	{
+		return $this->filter(
+			static function (Transfer $transfer) use ($ids): bool {
+				foreach ($ids as $id) {
+					if ($transfer->debitAccountId->equals($id)) {
+						return true;
+					}
+				}
+
+				return false;
+			},
+		);
+	}
+
+	#[\Override]
+	public function ofCreditAccount(Identifier ...$ids): self
+	{
+		return $this->filter(
+			static function (Transfer $transfer) use ($ids): bool {
+				foreach ($ids as $id) {
+					if ($transfer->creditAccountId->equals($id)) {
+						return true;
+					}
+				}
+
+				return false;
+			},
+		);
+	}
+
+	#[\Override]
+	public function expired(Instant $now): self
+	{
+		// Capture all items to check for post/void transfers
+		$allItems = $this->items;
+
+		return $this->filter(
+			static function (Transfer $transfer) use ($now, $allItems): bool {
+				// Must be a pending transfer
+				if (!$transfer->flags->isPending()) {
+					return false;
+				}
+
+				// Must have a non-zero timeout
+				if ($transfer->timeout->isZero()) {
+					return false;
+				}
+
+				// Check if this pending transfer has been posted or voided
+				// by looking for a transfer with POST_PENDING or VOID_PENDING flags
+				// that references this transfer's ID
+				foreach ($allItems as $otherTransfer) {
+					if ($otherTransfer->pendingId->equals($transfer->id)) {
+						if ($otherTransfer->flags->isPostPending() || $otherTransfer->flags->isVoidPending()) {
+							return false; // Already posted or voided
+						}
+					}
+				}
+
+				// Check if expired: (timestamp + timeout) <= now
+				$expiresAt = $transfer->timestamp->seconds + $transfer->timeout->seconds;
+
+				return $expiresAt <= $now->seconds;
 			},
 		);
 	}

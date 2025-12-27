@@ -1,5 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <files psalm-version="6.8.6@34ba9e1e5ea2e7396d3e2e644ee3e3a1d4336603">
+  <file src="src/Storage/Dbal/AccountBalanceRepository.php">
+    <MoreSpecificImplementedParamType>
+      <code><![CDATA[$row]]></code>
+    </MoreSpecificImplementedParamType>
+  </file>
+  <file src="src/Storage/Dbal/AccountRepository.php">
+    <MoreSpecificImplementedParamType>
+      <code><![CDATA[$row]]></code>
+    </MoreSpecificImplementedParamType>
+  </file>
+  <file src="src/Storage/Dbal/Repository.php">
+    <MixedAssignment>
+      <code><![CDATA[$row[$column]]]></code>
+    </MixedAssignment>
+  </file>
+  <file src="src/Storage/Dbal/TransferRepository.php">
+    <MoreSpecificImplementedParamType>
+      <code><![CDATA[$row]]></code>
+    </MoreSpecificImplementedParamType>
+  </file>
+  <file src="tests/Infra/Database.php">
+    <DocblockTypeContradiction>
+      <code><![CDATA[$uri === false || $uri === null]]></code>
+      <code><![CDATA[$uri === null]]></code>
+    </DocblockTypeContradiction>
+  </file>
+  <file src="tests/PHPUnit/DatabaseExtension.php">
+    <MixedAssignment>
+      <code><![CDATA[$metadata]]></code>
+      <code><![CDATA[$metadata]]></code>
+    </MixedAssignment>
+    <MixedMethodCall>
+      <code><![CDATA[isGroup]]></code>
+      <code><![CDATA[isGroup]]></code>
+    </MixedMethodCall>
+    <UndefinedMethod>
+      <code><![CDATA[metadata]]></code>
+      <code><![CDATA[metadata]]></code>
+    </UndefinedMethod>
+  </file>
   <file src="tests/StandardLedgerTest.php">
     <PropertyNotSetInConstructor>
       <code><![CDATA[$accountBalances]]></code>
