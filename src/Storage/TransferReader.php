@@ -63,6 +63,13 @@ interface TransferReader extends Reader
 	public function ofCreditAccount(Identifier ...$ids): self;
 
 	/**
+	 * Filter transfers by their pending ID.
+	 *
+	 * @param Identifier ...$ids One or more pending IDs to filter by
+	 */
+	public function ofPendingId(Identifier ...$ids): self;
+
+	/**
 	 * Filter expired pending transfers.
 	 *
 	 * Returns only pending transfers (PENDING flag set) that have:

@@ -78,6 +78,30 @@ final class ConstraintViolation extends \Exception
 		);
 	}
 
+	public static function pendingTransferAlreadyPosted(Identifier $pendingId): self
+	{
+		return new self(
+			ErrorCode::PendingTransferAlreadyPosted,
+			\sprintf('Pending transfer with ID %s has already been posted', $pendingId->toHex()),
+		);
+	}
+
+	public static function pendingTransferAlreadyVoided(Identifier $pendingId): self
+	{
+		return new self(
+			ErrorCode::PendingTransferAlreadyVoided,
+			\sprintf('Pending transfer with ID %s has already been voided', $pendingId->toHex()),
+		);
+	}
+
+	public static function exceedsPendingTransferAmount(): self
+	{
+		return new self(
+			ErrorCode::ExceedsPendingTransferAmount,
+			'Transfer amount exceeds the pending transfer amount',
+		);
+	}
+
 	public static function debitsExceedCredits(Identifier $accountId): self
 	{
 		return new self(

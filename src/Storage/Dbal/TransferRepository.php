@@ -131,6 +131,16 @@ final class TransferRepository extends Repository implements TransferReader, Tra
 	}
 
 	#[\Override]
+	public function ofPendingId(Identifier ...$ids): self
+	{
+		return $this->filter(static function (QueryBuilder $qb) use ($ids): void {
+			$bytes = \array_map(static fn(Identifier $id) => $id->bytes, $ids);
+			$qb->andWhere($qb->expr()->in('pending_id', ':pending_ids'))
+				->setParameter('pending_ids', $bytes, ArrayParameterType::BINARY);
+		});
+	}
+
+	#[\Override]
 	public function expired(Instant $now): self
 	{
 		return $this->filter(static function (QueryBuilder $qb) use ($now): void {

@@ -207,20 +207,61 @@ final readonly class StandardLedger implements Ledger
 		$debitAccount = $this->loadAccount($pendingTransfer->debitAccountId);
 		$creditAccount = $this->loadAccount($pendingTransfer->creditAccountId);
 
+		// Determine the amount to post
+		// If command amount is 0, post the full pending amount
+		// Otherwise, post the specified amount (partial posting)
+		$amountToPost = $command->amount->isZero()
+			? $pendingTransfer->amount
+			: $command->amount;
+
+		// Validate that the amount doesn't exceed the pending amount
+		if ($amountToPost->value > $pendingTransfer->amount->value) {
+			throw ConstraintViolation::exceedsPendingTransferAmount();
+		}
+
 		$timestamp = $this->clock->now();
 
 		[$updatedDebitAccount, $updatedCreditAccount] = $this->postPending(
 			$debitAccount,
 			$creditAccount,
-			$pendingTransfer->amount,
+			$amountToPost,
 			$timestamp,
 		);
+
+		// Set CLOSED flag if this is a closing transfer
+		if ($pendingTransfer->flags->isClosingDebit()) {
+			$updatedDebitAccount = new Account(
+				id: $updatedDebitAccount->id,
+				ledger: $updatedDebitAccount->ledger,
+				code: $updatedDebitAccount->code,
+				flags: $updatedDebitAccount->flags->with(AccountFlags::CLOSED),
+				externalIdPrimary: $updatedDebitAccount->externalIdPrimary,
+				externalIdSecondary: $updatedDebitAccount->externalIdSecondary,
+				externalCodePrimary: $updatedDebitAccount->externalCodePrimary,
+				balance: $updatedDebitAccount->balance,
+				timestamp: $updatedDebitAccount->timestamp,
+			);
+		}
+
+		if ($pendingTransfer->flags->isClosingCredit()) {
+			$updatedCreditAccount = new Account(
+				id: $updatedCreditAccount->id,
+				ledger: $updatedCreditAccount->ledger,
+				code: $updatedCreditAccount->code,
+				flags: $updatedCreditAccount->flags->with(AccountFlags::CLOSED),
+				externalIdPrimary: $updatedCreditAccount->externalIdPrimary,
+				externalIdSecondary: $updatedCreditAccount->externalIdSecondary,
+				externalCodePrimary: $updatedCreditAccount->externalCodePrimary,
+				balance: $updatedCreditAccount->balance,
+				timestamp: $updatedCreditAccount->timestamp,
+			);
+		}
 
 		$transfer = new Transfer(
 			id: $command->id,
 			debitAccountId: $pendingTransfer->debitAccountId,
 			creditAccountId: $pendingTransfer->creditAccountId,
-			amount: $pendingTransfer->amount,
+			amount: $amountToPost,
 			pendingId: $command->pendingId,
 			ledger: $command->ledger,
 			code: $command->code,
@@ -260,6 +301,35 @@ final readonly class StandardLedger implements Ledger
 			$pendingTransfer->amount,
 			$timestamp,
 		);
+
+		// Remove CLOSED flag if this was a closing transfer
+		if ($pendingTransfer->flags->isClosingDebit()) {
+			$updatedDebitAccount = new Account(
+				id: $updatedDebitAccount->id,
+				ledger: $updatedDebitAccount->ledger,
+				code: $updatedDebitAccount->code,
+				flags: $updatedDebitAccount->flags->without(AccountFlags::CLOSED),
+				externalIdPrimary: $updatedDebitAccount->externalIdPrimary,
+				externalIdSecondary: $updatedDebitAccount->externalIdSecondary,
+				externalCodePrimary: $updatedDebitAccount->externalCodePrimary,
+				balance: $updatedDebitAccount->balance,
+				timestamp: $updatedDebitAccount->timestamp,
+			);
+		}
+
+		if ($pendingTransfer->flags->isClosingCredit()) {
+			$updatedCreditAccount = new Account(
+				id: $updatedCreditAccount->id,
+				ledger: $updatedCreditAccount->ledger,
+				code: $updatedCreditAccount->code,
+				flags: $updatedCreditAccount->flags->without(AccountFlags::CLOSED),
+				externalIdPrimary: $updatedCreditAccount->externalIdPrimary,
+				externalIdSecondary: $updatedCreditAccount->externalIdSecondary,
+				externalCodePrimary: $updatedCreditAccount->externalCodePrimary,
+				balance: $updatedCreditAccount->balance,
+				timestamp: $updatedCreditAccount->timestamp,
+			);
+		}
 
 		$transfer = new Transfer(
 			id: $command->id,
@@ -340,6 +410,17 @@ final readonly class StandardLedger implements Ledger
 
 		if (!$transfer->timeout->isZero() && $this->isTransferExpired($transfer, $this->clock->now())) {
 			throw ConstraintViolation::pendingTransferExpired($pendingId);
+		}
+
+		$postOrVoid = $this->transfers->ofPendingId($pendingId)->first();
+		if ($postOrVoid !== null) {
+			if ($postOrVoid->flags->isPostPending()) {
+				throw ConstraintViolation::pendingTransferAlreadyPosted($pendingId);
+			}
+
+			if ($postOrVoid->flags->isVoidPending()) {
+				throw ConstraintViolation::pendingTransferAlreadyVoided($pendingId);
+			}
 		}
 
 		return $transfer;

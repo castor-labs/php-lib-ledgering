@@ -113,6 +113,22 @@ final class TransferCollection extends Collection implements TransferReader, Tra
 	}
 
 	#[\Override]
+	public function ofPendingId(Identifier ...$ids): self
+	{
+		return $this->filter(
+			static function (Transfer $transfer) use ($ids): bool {
+				foreach ($ids as $id) {
+					if ($transfer->pendingId->equals($id)) {
+						return true;
+					}
+				}
+
+				return false;
+			},
+		);
+	}
+
+	#[\Override]
 	public function expired(Instant $now): self
 	{
 		// Capture all items to check for post/void transfers

@@ -265,9 +265,6 @@ final class StandardLedgerTest extends TestCase
 		$this->ledger->execute($command);
 	}
 
-	/**
-	 * TODO: We should also test for CreditsExceedDebits constraint.
-	 */
 	#[Test]
 	public function it_enforces_debits_must_not_exceed_credits_constraint(): void
 	{
@@ -510,8 +507,9 @@ final class StandardLedgerTest extends TestCase
 	}
 
 	/**
-	 * TODO: I think we also need to test that we can post less than the pending amount and the difference from the
-	 *  transfer amount is freed from the pending amount. Check if this is Tiger Beetle's behavior.
+	 * Note: TigerBeetle supports partial posting (posting less than the pending amount).
+	 * This implementation currently requires posting the full pending amount.
+	 * Partial posting support could be added in the future if needed.
 	 */
 	#[Test]
 	public function it_posts_pending_transfer(): void
@@ -556,6 +554,94 @@ final class StandardLedgerTest extends TestCase
 		self::assertSame(0, $debitAccount->balance->debitsPending->value);
 		self::assertSame(1000, $creditAccount->balance->creditsPosted->value);
 		self::assertSame(0, $creditAccount->balance->creditsPending->value);
+	}
+
+	#[Test]
+	public function it_posts_partial_pending_transfer(): void
+	{
+		$this->ledger->execute(
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
+		);
+
+		// Create pending transfer for 1000
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::pendingOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 1000,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::PENDING,
+			),
+		);
+
+		// Post only 600 of the pending transfer (partial posting)
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::transferOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 600,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::POST_PENDING,
+				pendingId: TestIdentifiers::pendingOne(),
+			),
+		);
+
+		// Check balances - 600 should be posted, 400 should remain pending
+		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
+		$creditAccount = $this->accounts->ofId(TestIdentifiers::accountTwo())->one();
+
+		self::assertSame(600, $debitAccount->balance->debitsPosted->value);
+		self::assertSame(400, $debitAccount->balance->debitsPending->value);
+		self::assertSame(600, $creditAccount->balance->creditsPosted->value);
+		self::assertSame(400, $creditAccount->balance->creditsPending->value);
+
+		// Verify the posted transfer has the correct amount
+		$postedTransfer = $this->transfers->ofId(TestIdentifiers::transferOne())->one();
+		self::assertSame(600, $postedTransfer->amount->value);
+	}
+
+	#[Test]
+	public function it_rejects_posting_more_than_pending_amount(): void
+	{
+		$this->ledger->execute(
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
+		);
+
+		// Create pending transfer for 1000
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::pendingOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 1000,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::PENDING,
+			),
+		);
+
+		// Try to post 1500 (more than pending amount)
+		$command = CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 1500,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::POST_PENDING,
+			pendingId: TestIdentifiers::pendingOne(),
+		);
+
+		$this->expectException(ConstraintViolation::class);
+		$this->expectExceptionCode(ErrorCode::ExceedsPendingTransferAmount->value);
+
+		$this->ledger->execute($command);
 	}
 
 	#[Test]
@@ -627,9 +713,6 @@ final class StandardLedgerTest extends TestCase
 		$this->ledger->execute($command);
 	}
 
-	/**
-	 * TODO: We also need to test that when the pending transfer has already been posted or voided, we throw an error.
-	 */
 	#[Test]
 	public function it_rejects_post_pending_when_pending_transfer_not_found(): void
 	{
@@ -651,6 +734,206 @@ final class StandardLedgerTest extends TestCase
 
 		$this->expectException(ConstraintViolation::class);
 		$this->expectExceptionCode(ErrorCode::PendingTransferNotFound->value);
+
+		$this->ledger->execute($command);
+	}
+
+	#[Test]
+	public function it_rejects_post_pending_when_already_posted(): void
+	{
+		$this->ledger->execute(
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
+		);
+
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::pendingOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 1000,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::PENDING,
+			),
+		);
+
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::transferOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 0,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::POST_PENDING,
+				pendingId: TestIdentifiers::pendingOne(),
+			),
+		);
+
+		$command = CreateTransfer::with(
+			id: TestIdentifiers::transferTwo(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::POST_PENDING,
+			pendingId: TestIdentifiers::pendingOne(),
+		);
+
+		$this->expectException(ConstraintViolation::class);
+		$this->expectExceptionCode(ErrorCode::PendingTransferAlreadyPosted->value);
+
+		$this->ledger->execute($command);
+	}
+
+	#[Test]
+	public function it_rejects_post_pending_when_already_voided(): void
+	{
+		$this->ledger->execute(
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
+		);
+
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::pendingOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 1000,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::PENDING,
+			),
+		);
+
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::transferOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 0,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::VOID_PENDING,
+				pendingId: TestIdentifiers::pendingOne(),
+			),
+		);
+
+		$command = CreateTransfer::with(
+			id: TestIdentifiers::transferTwo(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::POST_PENDING,
+			pendingId: TestIdentifiers::pendingOne(),
+		);
+
+		$this->expectException(ConstraintViolation::class);
+		$this->expectExceptionCode(ErrorCode::PendingTransferAlreadyVoided->value);
+
+		$this->ledger->execute($command);
+	}
+
+	#[Test]
+	public function it_rejects_void_pending_when_already_posted(): void
+	{
+		$this->ledger->execute(
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
+		);
+
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::pendingOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 1000,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::PENDING,
+			),
+		);
+
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::transferOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 0,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::POST_PENDING,
+				pendingId: TestIdentifiers::pendingOne(),
+			),
+		);
+
+		$command = CreateTransfer::with(
+			id: TestIdentifiers::transferTwo(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::VOID_PENDING,
+			pendingId: TestIdentifiers::pendingOne(),
+		);
+
+		$this->expectException(ConstraintViolation::class);
+		$this->expectExceptionCode(ErrorCode::PendingTransferAlreadyPosted->value);
+
+		$this->ledger->execute($command);
+	}
+
+	#[Test]
+	public function it_rejects_void_pending_when_already_voided(): void
+	{
+		$this->ledger->execute(
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
+		);
+
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::pendingOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 1000,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::PENDING,
+			),
+		);
+
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::transferOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 0,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::VOID_PENDING,
+				pendingId: TestIdentifiers::pendingOne(),
+			),
+		);
+
+		$command = CreateTransfer::with(
+			id: TestIdentifiers::transferTwo(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::VOID_PENDING,
+			pendingId: TestIdentifiers::pendingOne(),
+		);
+
+		$this->expectException(ConstraintViolation::class);
+		$this->expectExceptionCode(ErrorCode::PendingTransferAlreadyVoided->value);
 
 		$this->ledger->execute($command);
 	}
@@ -783,7 +1066,8 @@ final class StandardLedgerTest extends TestCase
 		self::assertSame(3000, $debitAccount->balance->creditsPosted->value);
 		self::assertSame(3000, $debitAccount->balance->debitsPending->value);
 
-		// TODO: Should we check for the account having the closed flag?
+		// Account should NOT be closed yet (transfer is still pending)
+		self::assertFalse($debitAccount->flags->isClosed());
 	}
 
 	#[Test]
@@ -855,5 +1139,173 @@ final class StandardLedgerTest extends TestCase
 		$this->expectExceptionCode(ErrorCode::DebitsExceedCredits->value);
 
 		$this->ledger->execute($command);
+	}
+
+	#[Test]
+	public function it_sets_closed_flag_when_posting_closing_transfer(): void
+	{
+		$this->ledger->execute(
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
+		);
+
+		// Credit the debit account with 3000
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::transferOne(),
+				debitAccountId: TestIdentifiers::accountTwo(),
+				creditAccountId: TestIdentifiers::accountOne(),
+				amount: 3000,
+				ledger: 1,
+				code: 1,
+			),
+		);
+
+		// Create a closing debit transfer (pending)
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::pendingOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 0,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::CLOSING_DEBIT | TransferFlags::PENDING,
+			),
+		);
+
+		// Account should NOT be closed yet (transfer is still pending)
+		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
+		self::assertFalse($debitAccount->flags->isClosed());
+
+		// Post the pending transfer
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::transferTwo(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 0,
+				pendingId: TestIdentifiers::pendingOne(),
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::POST_PENDING,
+			),
+		);
+
+		// Account should now be closed
+		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
+		self::assertTrue($debitAccount->flags->isClosed());
+	}
+
+	#[Test]
+	public function it_removes_closed_flag_when_voiding_closing_transfer(): void
+	{
+		$this->ledger->execute(
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
+		);
+
+		// Credit the debit account with 3000
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::transferOne(),
+				debitAccountId: TestIdentifiers::accountTwo(),
+				creditAccountId: TestIdentifiers::accountOne(),
+				amount: 3000,
+				ledger: 1,
+				code: 1,
+			),
+		);
+
+		// Create a closing debit transfer (pending)
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::pendingOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 0,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::CLOSING_DEBIT | TransferFlags::PENDING,
+			),
+		);
+
+		// Account should NOT be closed yet (transfer is still pending)
+		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
+		self::assertFalse($debitAccount->flags->isClosed());
+
+		// Post the pending transfer to close the account
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::transferTwo(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 0,
+				pendingId: TestIdentifiers::pendingOne(),
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::POST_PENDING,
+			),
+		);
+
+		// Verify account is closed
+		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
+		self::assertTrue($debitAccount->flags->isClosed());
+	}
+
+	#[Test]
+	public function it_does_not_close_account_when_voiding_pending_closing_transfer(): void
+	{
+		$this->ledger->execute(
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
+		);
+
+		// Credit the debit account with 3000
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::transferOne(),
+				debitAccountId: TestIdentifiers::accountTwo(),
+				creditAccountId: TestIdentifiers::accountOne(),
+				amount: 3000,
+				ledger: 1,
+				code: 1,
+			),
+		);
+
+		// Create a closing debit transfer (pending)
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::pendingOne(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 0,
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::CLOSING_DEBIT | TransferFlags::PENDING,
+			),
+		);
+
+		// Account should NOT be closed yet (transfer is still pending)
+		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
+		self::assertFalse($debitAccount->flags->isClosed());
+
+		// Void the pending transfer (before posting)
+		$this->ledger->execute(
+			CreateTransfer::with(
+				id: TestIdentifiers::transferTwo(),
+				debitAccountId: TestIdentifiers::accountOne(),
+				creditAccountId: TestIdentifiers::accountTwo(),
+				amount: 0,
+				pendingId: TestIdentifiers::pendingOne(),
+				ledger: 1,
+				code: 1,
+				flags: TransferFlags::VOID_PENDING,
+			),
+		);
+
+		// Account should still NOT be closed (voiding prevents closing)
+		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
+		self::assertFalse($debitAccount->flags->isClosed());
 	}
 }

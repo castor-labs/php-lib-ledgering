@@ -32,6 +32,9 @@ enum ErrorCode: int
 	case TransferAlreadyExists = 2000;
 	case PendingTransferNotFound = 2001;
 	case PendingTransferExpired = 2002;
+	case PendingTransferAlreadyPosted = 2003;
+	case PendingTransferAlreadyVoided = 2004;
+	case ExceedsPendingTransferAmount = 2005;
 
 	// Balance constraint errors (3000-3999)
 	case DebitsExceedCredits = 3000;
