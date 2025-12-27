@@ -64,13 +64,11 @@ final readonly class StandardLedger implements Ledger
 	 */
 	private function createAccount(CreateAccount $command): void
 	{
-		// Check if account already exists
 		$existing = $this->accounts->ofId($command->id)->first();
 		if ($existing !== null) {
 			throw ConstraintViolation::accountAlreadyExists($command->id);
 		}
 
-		// Create new account with zero balance
 		$account = new Account(
 			id: $command->id,
 			ledger: $command->ledger,
@@ -83,21 +81,20 @@ final readonly class StandardLedger implements Ledger
 			timestamp: $this->clock->now(),
 		);
 
-		// Persist the account
 		$this->accounts->write($account);
 	}
 
 	/**
 	 * Create a new transfer in the ledger.
 	 *
+	 * Dispatches to the appropriate handler based on transfer flags.
+	 *
 	 * @throws ConstraintViolation if any business rule is violated
 	 */
 	private function createTransfer(CreateTransfer $command): void
 	{
-		// Validate the transfer command
 		$this->validateTransfer($command);
 
-		// Handle different transfer types
 		if ($command->flags->isPostPending()) {
 			$this->postPendingTransfer($command);
 
@@ -110,7 +107,6 @@ final readonly class StandardLedger implements Ledger
 			return;
 		}
 
-		// Regular or pending transfer
 		$this->executeTransfer($command);
 	}
 
@@ -121,12 +117,10 @@ final readonly class StandardLedger implements Ledger
 	 */
 	private function validateTransfer(CreateTransfer $command): void
 	{
-		// Cannot transfer to/from the same account
 		if ($command->debitAccountId->equals($command->creditAccountId)) {
 			throw ConstraintViolation::sameDebitAndCreditAccount($command->debitAccountId);
 		}
 
-		// Amount must be non-zero (unless balancing/closing/post/void pending)
 		if ($command->amount->isZero() &&
 			!$command->flags->isBalancingDebit() &&
 			!$command->flags->isBalancingCredit() &&
@@ -137,7 +131,6 @@ final readonly class StandardLedger implements Ledger
 			throw ConstraintViolation::zeroAmount();
 		}
 
-		// POST_PENDING and VOID_PENDING require pendingId
 		if (($command->flags->isPostPending() || $command->flags->isVoidPending()) &&
 			$command->pendingId->isZero()) {
 			throw ConstraintViolation::pendingIdRequired();
@@ -151,32 +144,25 @@ final readonly class StandardLedger implements Ledger
 	 */
 	private function executeTransfer(CreateTransfer $command): void
 	{
-		// Check if transfer already exists (idempotency)
 		$existing = $this->transfers->ofId($command->id)->first();
 		if ($existing !== null) {
 			return;
 		}
 
-		// Load both accounts
 		$debitAccount = $this->loadAccount($command->debitAccountId);
 		$creditAccount = $this->loadAccount($command->creditAccountId);
 
-		// Validate accounts are not closed
 		$this->validateAccountNotClosed($debitAccount);
 		$this->validateAccountNotClosed($creditAccount);
 
-		// Validate ledgers match
 		if (!$debitAccount->ledger->equals($creditAccount->ledger)) {
 			throw ConstraintViolation::ledgerMismatch($debitAccount->ledger, $creditAccount->ledger);
 		}
 
-		// Calculate amount (for balancing/closing transfers)
 		$amount = $this->calculateAmount($command, $debitAccount, $creditAccount);
 
-		// Capture timestamp once for correlation
 		$timestamp = $this->clock->now();
 
-		// Update account balances
 		[$updatedDebitAccount, $updatedCreditAccount] = $this->updateBalances(
 			$debitAccount,
 			$creditAccount,
@@ -185,7 +171,6 @@ final readonly class StandardLedger implements Ledger
 			$timestamp,
 		);
 
-		// Create the transfer
 		$transfer = new Transfer(
 			id: $command->id,
 			debitAccountId: $command->debitAccountId,
@@ -202,12 +187,10 @@ final readonly class StandardLedger implements Ledger
 			timestamp: $timestamp,
 		);
 
-		// Persist everything
 		$this->accounts->write($updatedDebitAccount);
 		$this->accounts->write($updatedCreditAccount);
 		$this->transfers->write($transfer);
 
-		// Record balance history if enabled
 		$this->recordBalanceHistory($updatedDebitAccount);
 		$this->recordBalanceHistory($updatedCreditAccount);
 	}
@@ -219,17 +202,13 @@ final readonly class StandardLedger implements Ledger
 	 */
 	private function postPendingTransfer(CreateTransfer $command): void
 	{
-		// Load the pending transfer
 		$pendingTransfer = $this->loadPendingTransfer($command->pendingId);
 
-		// Load both accounts
 		$debitAccount = $this->loadAccount($pendingTransfer->debitAccountId);
 		$creditAccount = $this->loadAccount($pendingTransfer->creditAccountId);
 
-		// Capture timestamp once for correlation
 		$timestamp = $this->clock->now();
 
-		// Move from pending to posted
 		[$updatedDebitAccount, $updatedCreditAccount] = $this->postPending(
 			$debitAccount,
 			$creditAccount,
@@ -237,7 +216,6 @@ final readonly class StandardLedger implements Ledger
 			$timestamp,
 		);
 
-		// Create the post transfer
 		$transfer = new Transfer(
 			id: $command->id,
 			debitAccountId: $pendingTransfer->debitAccountId,
@@ -254,12 +232,10 @@ final readonly class StandardLedger implements Ledger
 			timestamp: $timestamp,
 		);
 
-		// Persist everything
 		$this->accounts->write($updatedDebitAccount);
 		$this->accounts->write($updatedCreditAccount);
 		$this->transfers->write($transfer);
 
-		// Record balance history if enabled
 		$this->recordBalanceHistory($updatedDebitAccount);
 		$this->recordBalanceHistory($updatedCreditAccount);
 	}
@@ -271,17 +247,13 @@ final readonly class StandardLedger implements Ledger
 	 */
 	private function voidPendingTransfer(CreateTransfer $command): void
 	{
-		// Load the pending transfer
 		$pendingTransfer = $this->loadPendingTransfer($command->pendingId);
 
-		// Load both accounts
 		$debitAccount = $this->loadAccount($pendingTransfer->debitAccountId);
 		$creditAccount = $this->loadAccount($pendingTransfer->creditAccountId);
 
-		// Capture timestamp once for correlation
 		$timestamp = $this->clock->now();
 
-		// Remove from pending
 		[$updatedDebitAccount, $updatedCreditAccount] = $this->voidPending(
 			$debitAccount,
 			$creditAccount,
@@ -289,7 +261,6 @@ final readonly class StandardLedger implements Ledger
 			$timestamp,
 		);
 
-		// Create the void transfer
 		$transfer = new Transfer(
 			id: $command->id,
 			debitAccountId: $pendingTransfer->debitAccountId,
@@ -306,12 +277,10 @@ final readonly class StandardLedger implements Ledger
 			timestamp: $timestamp,
 		);
 
-		// Persist everything
 		$this->accounts->write($updatedDebitAccount);
 		$this->accounts->write($updatedCreditAccount);
 		$this->transfers->write($transfer);
 
-		// Record balance history if enabled
 		$this->recordBalanceHistory($updatedDebitAccount);
 		$this->recordBalanceHistory($updatedCreditAccount);
 	}
@@ -333,25 +302,21 @@ final readonly class StandardLedger implements Ledger
 
 	/**
 	 * Expire all pending transfers that have exceeded their timeout.
+	 *
+	 * Uses the expired() filter which efficiently queries for pending transfers
+	 * with non-zero timeouts that have exceeded (timestamp + timeout) <= asOf.
 	 */
 	private function expirePendingTransfers(ExpirePendingTransfers $command): void
 	{
-		// Use the efficient expired() filter to get only expired pending transfers
-		// This filters for:
-		// - Pending transfers (PENDING flag set)
-		// - Not posted or voided (no POST_PENDING or VOID_PENDING flags)
-		// - Non-zero timeout
-		// - Expired: (timestamp + timeout) <= now
 		$expiredTransfers = $this->transfers->expired($command->asOf)->toList();
 
 		foreach ($expiredTransfers as $transfer) {
-			// Create a void transfer to expire this pending transfer
 			$this->voidPendingTransfer(
 				CreateTransfer::with(
 					id: Identifier::random(),
 					debitAccountId: $transfer->debitAccountId,
 					creditAccountId: $transfer->creditAccountId,
-					amount: 0, // Amount is ignored for VOID_PENDING
+					amount: 0,
 					ledger: $transfer->ledger,
 					code: $transfer->code,
 					flags: TransferFlags::VOID_PENDING,
@@ -373,7 +338,6 @@ final readonly class StandardLedger implements Ledger
 			throw ConstraintViolation::pendingTransferNotFound($pendingId);
 		}
 
-		// Check if transfer has expired
 		if (!$transfer->timeout->isZero() && $this->isTransferExpired($transfer, $this->clock->now())) {
 			throw ConstraintViolation::pendingTransferExpired($pendingId);
 		}
@@ -386,10 +350,8 @@ final readonly class StandardLedger implements Ledger
 	 */
 	private function isTransferExpired(Transfer $transfer, Instant $asOf): bool
 	{
-		// Calculate expiration time: transfer.timestamp + transfer.timeout
 		$expirationSeconds = $transfer->timestamp->seconds + $transfer->timeout->seconds;
 
-		// Transfer is expired if the current time is after expiration time
 		return $asOf->seconds >= $expirationSeconds;
 	}
 
@@ -406,39 +368,39 @@ final readonly class StandardLedger implements Ledger
 	}
 
 	/**
-	 * Calculate the transfer amount (handles balancing and closing transfers).
+	 * Calculate the transfer amount.
+	 *
+	 * For balancing and closing transfers, the amount is computed from account balances.
+	 * Otherwise, uses the amount from the command.
 	 */
 	private function calculateAmount(
 		CreateTransfer $command,
 		Account $debitAccount,
 		Account $creditAccount,
 	): Amount {
-		// Balancing debit: calculate amount to zero out debit account
 		if ($command->flags->isBalancingDebit()) {
 			return $this->calculateBalancingAmount($debitAccount);
 		}
 
-		// Balancing credit: calculate amount to zero out credit account
 		if ($command->flags->isBalancingCredit()) {
 			return $this->calculateBalancingAmount($creditAccount);
 		}
 
-		// Closing debit: transfer entire debit account balance
 		if ($command->flags->isClosingDebit()) {
 			return $this->calculateClosingAmount($debitAccount);
 		}
 
-		// Closing credit: transfer entire credit account balance
 		if ($command->flags->isClosingCredit()) {
 			return $this->calculateClosingAmount($creditAccount);
 		}
 
-		// Use the provided amount
 		return $command->amount;
 	}
 
 	/**
-	 * Calculate balancing amount (net balance).
+	 * Calculate balancing amount.
+	 *
+	 * Returns the absolute net balance (total debits - total credits).
 	 */
 	private function calculateBalancingAmount(Account $account): Amount
 	{
@@ -449,7 +411,9 @@ final readonly class StandardLedger implements Ledger
 	}
 
 	/**
-	 * Calculate closing amount (total balance).
+	 * Calculate closing amount.
+	 *
+	 * Returns the sum of all balance components (debits + credits, posted + pending).
 	 */
 	private function calculateClosingAmount(Account $account): Amount
 	{
@@ -473,7 +437,6 @@ final readonly class StandardLedger implements Ledger
 		bool $isPending,
 		Instant $timestamp,
 	): array {
-		// Calculate new balances
 		if ($isPending) {
 			$newDebitBalance = new Balance(
 				debitsPosted: $debitAccount->balance->debitsPosted,
@@ -504,11 +467,9 @@ final readonly class StandardLedger implements Ledger
 			);
 		}
 
-		// Validate constraints
 		$this->validateBalanceConstraints($debitAccount, $newDebitBalance);
 		$this->validateBalanceConstraints($creditAccount, $newCreditBalance);
 
-		// Create updated accounts
 		$updatedDebitAccount = new Account(
 			id: $debitAccount->id,
 			ledger: $debitAccount->ledger,
@@ -549,7 +510,6 @@ final readonly class StandardLedger implements Ledger
 		Amount $amount,
 		Instant $timestamp,
 	): array {
-		// Verify sufficient pending balance
 		if ($debitAccount->balance->debitsPending->compare($amount) < 0) {
 			throw ConstraintViolation::insufficientPendingBalance($debitAccount->id);
 		}
@@ -558,7 +518,6 @@ final readonly class StandardLedger implements Ledger
 			throw ConstraintViolation::insufficientPendingBalance($creditAccount->id);
 		}
 
-		// Move from pending to posted
 		$newDebitBalance = new Balance(
 			debitsPosted: $debitAccount->balance->debitsPosted->add($amount),
 			creditsPosted: $debitAccount->balance->creditsPosted,
@@ -573,11 +532,9 @@ final readonly class StandardLedger implements Ledger
 			creditsPending: $creditAccount->balance->creditsPending->subtract($amount),
 		);
 
-		// Validate constraints (should always pass since pending already validated)
 		$this->validateBalanceConstraints($debitAccount, $newDebitBalance);
 		$this->validateBalanceConstraints($creditAccount, $newCreditBalance);
 
-		// Create updated accounts
 		$updatedDebitAccount = new Account(
 			id: $debitAccount->id,
 			ledger: $debitAccount->ledger,
@@ -618,7 +575,6 @@ final readonly class StandardLedger implements Ledger
 		Amount $amount,
 		Instant $timestamp,
 	): array {
-		// Verify sufficient pending balance
 		if ($debitAccount->balance->debitsPending->compare($amount) < 0) {
 			throw ConstraintViolation::insufficientPendingBalance($debitAccount->id);
 		}
@@ -627,7 +583,6 @@ final readonly class StandardLedger implements Ledger
 			throw ConstraintViolation::insufficientPendingBalance($creditAccount->id);
 		}
 
-		// Remove from pending
 		$newDebitBalance = new Balance(
 			debitsPosted: $debitAccount->balance->debitsPosted,
 			creditsPosted: $debitAccount->balance->creditsPosted,
@@ -642,7 +597,6 @@ final readonly class StandardLedger implements Ledger
 			creditsPending: $creditAccount->balance->creditsPending->subtract($amount),
 		);
 
-		// Create updated accounts
 		$updatedDebitAccount = new Account(
 			id: $debitAccount->id,
 			ledger: $debitAccount->ledger,
@@ -677,7 +631,6 @@ final readonly class StandardLedger implements Ledger
 	 */
 	private function validateBalanceConstraints(Account $account, Balance $newBalance): void
 	{
-		// Check DEBITS_MUST_NOT_EXCEED_CREDITS constraint
 		if ($account->flags->debitsMusNotExceedCredits()) {
 			$totalDebits = $newBalance->debitsPosted->value + $newBalance->debitsPending->value;
 			$postedCredits = $newBalance->creditsPosted->value;
@@ -687,7 +640,6 @@ final readonly class StandardLedger implements Ledger
 			}
 		}
 
-		// Check CREDITS_MUST_NOT_EXCEED_DEBITS constraint
 		if ($account->flags->creditsMusNotExceedDebits()) {
 			$totalCredits = $newBalance->creditsPosted->value + $newBalance->creditsPending->value;
 			$postedDebits = $newBalance->debitsPosted->value;
