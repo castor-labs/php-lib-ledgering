@@ -37,7 +37,7 @@ final class TransferRepositoryTest extends TestCase
 	protected function setUp(): void
 	{
 		$connection = Database::connection();
-		$connection->executeStatement('TRUNCATE TABLE transfers RESTART IDENTITY CASCADE');
+		$connection->executeStatement('TRUNCATE TABLE ledgering_transfers RESTART IDENTITY CASCADE');
 	}
 
 	#[Test]

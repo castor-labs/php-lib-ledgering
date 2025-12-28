@@ -70,7 +70,7 @@ final class AccountRepository extends Repository implements AccountReader, Accou
 	) {
 		parent::__construct(
 			$connection,
-			$connection->createQueryBuilder()->select('*')->from('accounts'),
+			$connection->createQueryBuilder()->select('*')->from('ledgering_accounts'),
 			$connection->getDatabasePlatform(),
 			self::TYPE_MAP,
 		);
@@ -133,11 +133,11 @@ final class AccountRepository extends Repository implements AccountReader, Accou
 			];
 
 			// Try to update first
-			$updated = $this->connection->update('accounts', $data, ['id' => $account->id->bytes], $types);
+			$updated = $this->connection->update('ledgering_accounts', $data, ['id' => $account->id->bytes], $types);
 
 			// If no rows updated, insert
 			if ($updated === 0) {
-				$this->connection->insert('accounts', $data, $types);
+				$this->connection->insert('ledgering_accounts', $data, $types);
 			}
 		} catch (\Throwable $e) {
 			throw new UnexpectedError($e->getMessage(), previous: $e);

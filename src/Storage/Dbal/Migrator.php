@@ -29,13 +29,13 @@ final class Migrator
 	 * Create the ledgering schema.
 	 *
 	 * Creates three tables:
-	 * - accounts: Stores account information and current balances
-	 * - transfers: Stores all transfers between accounts
-	 * - account_balances: Stores historical balance snapshots (for accounts with HISTORY flag)
+	 * - ledgering_accounts: Stores account information and current balances
+	 * - ledgering_transfers: Stores all transfers between accounts
+	 * - ledgering_account_balances: Stores historical balance snapshots (for accounts with HISTORY flag)
 	 */
 	public static function up(Schema $schema): void
 	{
-		$accounts = $schema->createTable('accounts');
+		$accounts = $schema->createTable('ledgering_accounts');
 		$accounts->addColumn('sequence', 'bigint', ['unsigned' => true, 'autoincrement' => true]);
 		$accounts->addColumn('id', 'binary', ['length' => 16, 'fixed' => true]);
 		$accounts->addColumn('ledger', 'integer', ['unsigned' => true]);
@@ -57,7 +57,7 @@ final class Migrator
 		$accounts->addIndex(['ledger', 'code'], 'idx_accounts_ledger_code');
 		$accounts->addIndex(['timestamp_seconds', 'timestamp_nanos'], 'idx_accounts_timestamp');
 
-		$transfers = $schema->createTable('transfers');
+		$transfers = $schema->createTable('ledgering_transfers');
 		$transfers->addColumn('sequence', 'bigint', ['unsigned' => true, 'autoincrement' => true]);
 		$transfers->addColumn('id', 'binary', ['length' => 16, 'fixed' => true]);
 		$transfers->addColumn('debit_account_id', 'binary', ['length' => 16, 'fixed' => true]);
@@ -83,7 +83,7 @@ final class Migrator
 		$transfers->addIndex(['ledger', 'code'], 'idx_transfers_ledger_code');
 		$transfers->addIndex(['timestamp_seconds', 'timestamp_nanos'], 'idx_transfers_timestamp');
 
-		$balances = $schema->createTable('account_balances');
+		$balances = $schema->createTable('ledgering_account_balances');
 		$balances->addColumn('sequence', 'bigint', ['unsigned' => true, 'autoincrement' => true]);
 		$balances->addColumn('account_id', 'binary', ['length' => 16, 'fixed' => true]);
 		$balances->addColumn('debits_posted', 'bigint', ['unsigned' => true]);
@@ -103,8 +103,8 @@ final class Migrator
 	 */
 	public static function down(Schema $schema): void
 	{
-		$schema->dropTable('account_balances');
-		$schema->dropTable('transfers');
-		$schema->dropTable('accounts');
+		$schema->dropTable('ledgering_account_balances');
+		$schema->dropTable('ledgering_transfers');
+		$schema->dropTable('ledgering_accounts');
 	}
 }

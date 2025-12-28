@@ -35,7 +35,7 @@ final class AccountBalanceRepositoryTest extends TestCase
 	protected function setUp(): void
 	{
 		$connection = Database::connection();
-		$connection->executeStatement('TRUNCATE TABLE account_balances RESTART IDENTITY CASCADE');
+		$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances RESTART IDENTITY CASCADE');
 	}
 
 	#[Test]

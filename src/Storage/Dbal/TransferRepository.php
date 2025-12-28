@@ -74,7 +74,7 @@ final class TransferRepository extends Repository implements TransferReader, Tra
 	) {
 		parent::__construct(
 			$connection,
-			$connection->createQueryBuilder()->select('*')->from('transfers'),
+			$connection->createQueryBuilder()->select('*')->from('ledgering_transfers'),
 			$connection->getDatabasePlatform(),
 			self::TYPE_MAP,
 		);
@@ -164,8 +164,8 @@ final class TransferRepository extends Repository implements TransferReader, Tra
 
 			$qb->andWhere(
 				'NOT EXISTS ('.
-				'SELECT 1 FROM transfers t2 '.
-				'WHERE t2.pending_id = transfers.id '.
+				'SELECT 1 FROM ledgering_transfers t2 '.
+				'WHERE t2.pending_id = ledgering_transfers.id '.
 				'AND ((t2.flags & :post_pending_flag) = :post_pending_flag '.
 				'OR (t2.flags & :void_pending_flag) = :void_pending_flag)'.
 				')',
@@ -206,7 +206,7 @@ final class TransferRepository extends Repository implements TransferReader, Tra
 			];
 
 			// Transfers are immutable, so we only insert
-			$this->connection->insert('transfers', $data, $types);
+			$this->connection->insert('ledgering_transfers', $data, $types);
 		} catch (\Throwable $e) {
 			throw new UnexpectedError($e->getMessage(), previous: $e);
 		}

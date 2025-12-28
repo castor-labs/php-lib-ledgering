@@ -22,12 +22,14 @@
   ],
   "autoload": {
     "psr-4": {
-      "Castor\\Ledgering\\": "src"
+      "Castor\\Ledgering\\": "src",
+      "Castor\\Symfony\\": "bundle/src"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Castor\\Ledgering\\": "tests"
+      "Castor\\Ledgering\\": "tests",
+      "Castor\\Symfony\\": "bundle/tests"
     }
   },
   "repositories": [
@@ -40,13 +42,16 @@
     "php": ">=8.3",
     "castor/functions": "^1.0",
     "doctrine/dbal": "^4.2",
-    "nikic/php-parser": "^5.4"
+    "nikic/php-parser": "^5.4",
+    "symfony/http-kernel": "^7.0",
+    "symfony/dependency-injection": "^7.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^10.5",
     "friendsofphp/php-cs-fixer": "^3.69",
     "vimeo/psalm": "^6.8",
-    "castor/code-style": "^1.0"
+    "castor/code-style": "^1.0",
+    "doctrine/migrations": "^3.0"
   },
   "scripts": {
     "pr": [

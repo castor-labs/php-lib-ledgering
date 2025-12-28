@@ -38,9 +38,9 @@ final class TransactionalLedgerTest extends TestCase
 	protected function setUp(): void
 	{
 		$connection = Database::connection();
-		$connection->executeStatement('TRUNCATE TABLE accounts CASCADE');
-		$connection->executeStatement('TRUNCATE TABLE transfers RESTART IDENTITY CASCADE');
-		$connection->executeStatement('TRUNCATE TABLE account_balances RESTART IDENTITY CASCADE');
+		$connection->executeStatement('TRUNCATE TABLE ledgering_accounts CASCADE');
+		$connection->executeStatement('TRUNCATE TABLE ledgering_transfers RESTART IDENTITY CASCADE');
+		$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances RESTART IDENTITY CASCADE');
 	}
 
 	#[Test]

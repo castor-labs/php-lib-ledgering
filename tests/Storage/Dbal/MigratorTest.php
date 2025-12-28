@@ -31,9 +31,9 @@ final class MigratorTest extends TestCase
 		$schemaManager = $connection->createSchemaManager();
 
 		// Verify all tables exist
-		self::assertTrue($schemaManager->tablesExist(['accounts']));
-		self::assertTrue($schemaManager->tablesExist(['transfers']));
-		self::assertTrue($schemaManager->tablesExist(['account_balances']));
+		self::assertTrue($schemaManager->tablesExist(['ledgering_accounts']));
+		self::assertTrue($schemaManager->tablesExist(['ledgering_transfers']));
+		self::assertTrue($schemaManager->tablesExist(['ledgering_account_balances']));
 	}
 
 	#[Test]
@@ -41,7 +41,7 @@ final class MigratorTest extends TestCase
 	{
 		$connection = Database::connection();
 		$schemaManager = $connection->createSchemaManager();
-		$table = $schemaManager->introspectTable('accounts');
+		$table = $schemaManager->introspectTable('ledgering_accounts');
 
 		// Verify primary key is sequence
 		$primaryKey = $table->getPrimaryKey();
@@ -81,7 +81,7 @@ final class MigratorTest extends TestCase
 	{
 		$connection = Database::connection();
 		$schemaManager = $connection->createSchemaManager();
-		$table = $schemaManager->introspectTable('transfers');
+		$table = $schemaManager->introspectTable('ledgering_transfers');
 
 		// Verify primary key is sequence
 		$primaryKey = $table->getPrimaryKey();
@@ -119,7 +119,7 @@ final class MigratorTest extends TestCase
 	{
 		$connection = Database::connection();
 		$schemaManager = $connection->createSchemaManager();
-		$table = $schemaManager->introspectTable('account_balances');
+		$table = $schemaManager->introspectTable('ledgering_account_balances');
 
 		// Verify primary key is sequence
 		$primaryKey = $table->getPrimaryKey();

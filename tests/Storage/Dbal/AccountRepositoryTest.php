@@ -38,7 +38,7 @@ final class AccountRepositoryTest extends TestCase
 		$connection = Database::connection();
 
 		// Clean up accounts table before each test
-		$connection->executeStatement('TRUNCATE TABLE accounts CASCADE');
+		$connection->executeStatement('TRUNCATE TABLE ledgering_accounts CASCADE');
 	}
 
 	#[Test]

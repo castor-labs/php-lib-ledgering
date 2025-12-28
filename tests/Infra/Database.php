@@ -99,14 +99,14 @@ final class Database
 		Migrator::up($newSchema);
 
 		// Drop existing tables if they exist
-		if ($currentSchema->hasTable('account_balances')) {
-			$connection->executeStatement('DROP TABLE account_balances');
+		if ($currentSchema->hasTable('ledgering_account_balances')) {
+			$connection->executeStatement('DROP TABLE ledgering_account_balances');
 		}
-		if ($currentSchema->hasTable('transfers')) {
-			$connection->executeStatement('DROP TABLE transfers');
+		if ($currentSchema->hasTable('ledgering_transfers')) {
+			$connection->executeStatement('DROP TABLE ledgering_transfers');
 		}
-		if ($currentSchema->hasTable('accounts')) {
-			$connection->executeStatement('DROP TABLE accounts');
+		if ($currentSchema->hasTable('ledgering_accounts')) {
+			$connection->executeStatement('DROP TABLE ledgering_accounts');
 		}
 
 		// Create tables
@@ -131,17 +131,17 @@ final class Database
 
 		if ($platform instanceof MySQLPlatform || $platform instanceof MariaDBPlatform) {
 			$connection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
-			$connection->executeStatement('TRUNCATE TABLE account_balances');
-			$connection->executeStatement('TRUNCATE TABLE transfers');
-			$connection->executeStatement('TRUNCATE TABLE accounts');
+			$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances');
+			$connection->executeStatement('TRUNCATE TABLE ledgering_transfers');
+			$connection->executeStatement('TRUNCATE TABLE ledgering_accounts');
 			$connection->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
 		} elseif ($platform instanceof PostgreSQLPlatform) {
-			$connection->executeStatement('TRUNCATE TABLE account_balances, transfers, accounts CASCADE');
+			$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances, ledgering_transfers, ledgering_accounts CASCADE');
 		} else {
 			// Fallback for other databases
-			$connection->executeStatement('DELETE FROM account_balances');
-			$connection->executeStatement('DELETE FROM transfers');
-			$connection->executeStatement('DELETE FROM accounts');
+			$connection->executeStatement('DELETE FROM ledgering_account_balances');
+			$connection->executeStatement('DELETE FROM ledgering_transfers');
+			$connection->executeStatement('DELETE FROM ledgering_accounts');
 		}
 	}
 

@@ -60,7 +60,7 @@ final class AccountBalanceRepository extends Repository implements AccountBalanc
 	) {
 		parent::__construct(
 			$connection,
-			$connection->createQueryBuilder()->select('*')->from('account_balances'),
+			$connection->createQueryBuilder()->select('*')->from('ledgering_account_balances'),
 			$connection->getDatabasePlatform(),
 			self::TYPE_MAP,
 		);
@@ -95,7 +95,7 @@ final class AccountBalanceRepository extends Repository implements AccountBalanc
 			];
 
 			// Account balances are append-only (historical records)
-			$this->connection->insert('account_balances', $data, $types);
+			$this->connection->insert('ledgering_account_balances', $data, $types);
 		} catch (\Throwable $e) {
 			throw new UnexpectedError($e->getMessage(), previous: $e);
 		}
