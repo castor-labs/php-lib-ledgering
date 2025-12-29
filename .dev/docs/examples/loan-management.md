@@ -103,28 +103,14 @@ use Castor\Ledgering\CreateTransfer;
 $loanAmount = 1000000;  // $10,000.00
 
 $ledger->execute(
-    // Debit loan principal (customer owes this)
+    // Record the loan principal (customer owes this)
     CreateTransfer::with(
         id: Identifier::fromHex('66666666666666666666666666666666'),
-        debitAccountId: $loanPrincipalId,
-        creditAccountId: $customerCashId,
+        debitAccountId: $loanPrincipalId,  // Customer owes principal
+        creditAccountId: $customerCashId,  // Customer receives cash
         amount: $loanAmount,
         ledger: USD,
         code: 10,  // Loan disbursement
-    ),
-    // Credit customer cash (customer receives funds)
-    // This is handled by the same transfer above
-);
-
-// Alternative: Disburse directly to bank account if customer wants funds elsewhere
-$ledger->execute(
-    CreateTransfer::with(
-        id: Identifier::fromHex('77777777777777777777777777777777'),
-        debitAccountId: $loanPrincipalId,
-        creditAccountId: $bankCashId,  // Funds go to external account
-        amount: $loanAmount,
-        ledger: USD,
-        code: 10,
     ),
 );
 ```
@@ -158,9 +144,138 @@ $ledger->execute(
 
 ### Result
 
+- Loan Interest Account: debits = $100, credits = $0 (owes $100 interest)
+- Total owed: $10,000 principal + $100 interest = $10,100
+
+## Regular Repayment
+
+Customer makes a regular payment. Payments are applied in order: fees, interest, then principal.
+
+```php
+// Customer pays $500
+$paymentAmount = 50000;  // $500.00
+
+// Current balances:
+// - Fees owed: $0
+// - Interest owed: $100
+// - Principal owed: $10,000
+
+// Apply to interest first ($100), then principal ($400)
+
+$ledger->execute(
+    // Pay interest ($100)
+    CreateTransfer::with(
+        id: Identifier::fromHex('99999999999999999999999999999999'),
+        debitAccountId: $customerCashId,
+        creditAccountId: $loanInterestId,
+        amount: 10000,  // $100.00
+        ledger: USD,
+        code: 21,  // Interest payment
+    ),
+    // Pay principal ($400)
+    CreateTransfer::with(
+        id: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+        debitAccountId: $customerCashId,
+        creditAccountId: $loanPrincipalId,
+        amount: 40000,  // $400.00
+        ledger: USD,
+        code: 22,  // Principal payment
+    ),
+);
+```
+
+### Result
+
+- Loan Interest Account: debits = $100, credits = $100 (fully paid)
+- Loan Principal Account: debits = $10,000, credits = $400 (owes $9,600)
+- Customer Cash Account: debits = $500, credits = $10,000 (has $9,500)
+
+## Missed Payment and Late Fees
+
+When a payment is missed, assess a late fee.
+
+```php
+// Assess $25 late fee
+$lateFee = 2500;  // $25.00
+
+$ledger->execute(
+    CreateTransfer::with(
+        id: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+        debitAccountId: $loanFeesId,    // Fee owed increases
+        creditAccountId: $bankCashId,   // Bank earns fee
+        amount: $lateFee,
+        ledger: USD,
+        code: 30,  // Late fee assessment
+    ),
+);
+```
+
+### Result
+
+- Loan Fees Account: debits = $25, credits = $0 (owes $25 in fees)
+- Total owed: $9,600 principal + $0 interest + $25 fees = $9,625
+
+## Next Payment with Fees
+
+The next payment pays fees first, then interest, then principal.
+
+```php
+// Accrue another month of interest first
+$ledger->execute(
+    CreateTransfer::with(
+        id: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbc'),
+        debitAccountId: $loanInterestId,
+        creditAccountId: $bankCashId,
+        amount: 9600,  // $96.00 (1% of $9,600 principal)
+        ledger: USD,
+        code: 20,
+    ),
+);
+
+// Customer pays $500 again
+$paymentAmount = 50000;
+
+// Current balances:
+// - Fees owed: $25
+// - Interest owed: $96 (newly accrued)
+// - Principal owed: $9,600
+
+$ledger->execute(
+    // Pay fees first ($25)
+    CreateTransfer::with(
+        id: Identifier::fromHex('cccccccccccccccccccccccccccccccc'),
+        debitAccountId: $customerCashId,
+        creditAccountId: $loanFeesId,
+        amount: 2500,  // $25.00
+        ledger: USD,
+        code: 31,  // Fee payment
+    ),
+    // Pay interest ($96)
+    CreateTransfer::with(
+        id: Identifier::fromHex('dddddddddddddddddddddddddddddddd'),
+        debitAccountId: $customerCashId,
+        creditAccountId: $loanInterestId,
+        amount: 9600,  // $96.00
+        ledger: USD,
+        code: 21,
+    ),
+    // Pay principal ($379)
+    CreateTransfer::with(
+        id: Identifier::fromHex('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'),
+        debitAccountId: $customerCashId,
+        creditAccountId: $loanPrincipalId,
+        amount: 37900,  // $379.00
+        ledger: USD,
+        code: 22,
+    ),
+);
+```
+
+### Result
+
 - Loan Fees Account: debits = $25, credits = $25 (fully paid)
-- Loan Interest Account: debits = $200, credits = $200 (fully paid)
-- Loan Principal Account: debits = $10,000, credits = $775 (owes $9,225)
+- Loan Interest Account: debits = $96, credits = $96 (fully paid)
+- Loan Principal Account: debits = $10,000, credits = $779 (owes $9,221)
 
 ## Early Payoff
 
@@ -169,11 +284,23 @@ Customer wants to pay off the entire loan early. Use balancing transfers to calc
 ```php
 use Castor\Ledgering\TransferFlags;
 
+// Accrue final interest
+$ledger->execute(
+    CreateTransfer::with(
+        id: Identifier::fromHex('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeef'),
+        debitAccountId: $loanInterestId,
+        creditAccountId: $bankCashId,
+        amount: 9221,  // $92.21 (1% of $9,221 principal)
+        ledger: USD,
+        code: 20,
+    ),
+);
+
 // Customer wants to pay off entire loan
 // Current balances:
 // - Fees owed: $0
-// - Interest owed: $50 (some accrued)
-// - Principal owed: $9,225
+// - Interest owed: $92.21
+// - Principal owed: $9,221
 
 // Pay off interest using balancing transfer
 $ledger->execute(
