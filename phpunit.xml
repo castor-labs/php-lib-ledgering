@@ -26,6 +26,6 @@
     </coverage>
 
     <extensions>
-        <bootstrap class="Castor\Ledgering\PhpUnit\DatabaseExtension"/>
+        <bootstrap class="Castor\Ledgering\PHPUnit\DatabaseExtension"/>
     </extensions>
 </phpunit>
