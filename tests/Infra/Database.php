@@ -156,11 +156,11 @@ final class Database
 			$connection->executeStatement('TRUNCATE TABLE ledgering_accounts');
 		} elseif ($platform instanceof SQLitePlatform) {
 			// SQLite: Doesn't support TRUNCATE, use DELETE instead
-			// Also reset the autoincrement sequence
 			$connection->executeStatement('DELETE FROM ledgering_account_balances');
 			$connection->executeStatement('DELETE FROM ledgering_transfers');
 			$connection->executeStatement('DELETE FROM ledgering_accounts');
-			$connection->executeStatement('DELETE FROM sqlite_sequence WHERE name IN (\'ledgering_account_balances\', \'ledgering_transfers\', \'ledgering_accounts\')');
+			// Reset autoincrement sequences (sqlite_sequence table is created automatically when using AUTOINCREMENT)
+			$connection->executeStatement("DELETE FROM sqlite_sequence WHERE name IN ('ledgering_account_balances', 'ledgering_transfers', 'ledgering_accounts')");
 		} else {
 			// Fallback for unknown databases: use DELETE
 			$connection->executeStatement('DELETE FROM ledgering_account_balances');
