@@ -8,7 +8,7 @@ declare(strict_types=1);
  * @package castor/ledgering
  * @author Matias Navarro-Carter mnavarrocarter@gmail.com
  * @license MIT
- * @copyright 2024-2025 CastorLabs Ltd
+ * @copyright 2024-2026 CastorLabs Ltd
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -22,6 +22,8 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Platforms\MariaDBPlatform;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Platforms\SQLitePlatform;
+use Doctrine\DBAL\Platforms\SQLServerPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Tools\DsnParser;
 
@@ -66,6 +68,7 @@ final class Database
 				'mariadb' => 'pdo_mysql',
 				'sqlite' => 'pdo_sqlite',
 				'sqlite3' => 'pdo_sqlite',
+				'sqlsrv' => 'pdo_sqlsrv',
 			]);
 
 			$params = $dsnParser->parse($uri);
@@ -123,6 +126,12 @@ final class Database
 	 *
 	 * Truncates all tables to remove data while keeping the schema intact.
 	 * This is faster than dropping and recreating tables.
+	 *
+	 * Supports vendor-specific optimizations for:
+	 * - PostgreSQL: TRUNCATE with CASCADE
+	 * - MySQL/MariaDB: TRUNCATE with foreign key checks disabled
+	 * - SQL Server: TRUNCATE (no foreign keys in schema)
+	 * - SQLite: DELETE (SQLite doesn't support TRUNCATE)
 	 */
 	public static function reset(): void
 	{
@@ -130,15 +139,30 @@ final class Database
 		$platform = $connection->getDatabasePlatform();
 
 		if ($platform instanceof MySQLPlatform || $platform instanceof MariaDBPlatform) {
+			// MySQL/MariaDB: Disable foreign key checks to allow truncating tables with foreign keys
 			$connection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
 			$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances');
 			$connection->executeStatement('TRUNCATE TABLE ledgering_transfers');
 			$connection->executeStatement('TRUNCATE TABLE ledgering_accounts');
 			$connection->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
 		} elseif ($platform instanceof PostgreSQLPlatform) {
-			$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances, ledgering_transfers, ledgering_accounts CASCADE');
+			// PostgreSQL: Use CASCADE to handle dependencies
+			$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances, ledgering_transfers, ledgering_accounts RESTART IDENTITY CASCADE');
+		} elseif ($platform instanceof SQLServerPlatform) {
+			// SQL Server: TRUNCATE works since there are no foreign keys in the schema
+			// Note: Must truncate in reverse dependency order (balances -> transfers -> accounts)
+			$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances');
+			$connection->executeStatement('TRUNCATE TABLE ledgering_transfers');
+			$connection->executeStatement('TRUNCATE TABLE ledgering_accounts');
+		} elseif ($platform instanceof SQLitePlatform) {
+			// SQLite: Doesn't support TRUNCATE, use DELETE instead
+			// Also reset the autoincrement sequence
+			$connection->executeStatement('DELETE FROM ledgering_account_balances');
+			$connection->executeStatement('DELETE FROM ledgering_transfers');
+			$connection->executeStatement('DELETE FROM ledgering_accounts');
+			$connection->executeStatement('DELETE FROM sqlite_sequence WHERE name IN (\'ledgering_account_balances\', \'ledgering_transfers\', \'ledgering_accounts\')');
 		} else {
-			// Fallback for other databases
+			// Fallback for unknown databases: use DELETE
 			$connection->executeStatement('DELETE FROM ledgering_account_balances');
 			$connection->executeStatement('DELETE FROM ledgering_transfers');
 			$connection->executeStatement('DELETE FROM ledgering_accounts');

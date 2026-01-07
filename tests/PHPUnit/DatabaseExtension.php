@@ -8,7 +8,7 @@ declare(strict_types=1);
  * @package castor/ledgering
  * @author Matias Navarro-Carter mnavarrocarter@gmail.com
  * @license MIT
- * @copyright 2024-2025 CastorLabs Ltd
+ * @copyright 2024-2026 CastorLabs Ltd
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -29,7 +29,7 @@ use PHPUnit\Runner\Extension\ParameterCollection;
 use PHPUnit\TextUI\Configuration\Configuration;
 
 /**
- * PHPUnit extension that bootstraps the database for tests marked with #[Group('db')].
+ * PHPUnit extension that bootstraps the database for tests marked with #[Group('integration')].
  *
  * This extension:
  * - Initializes the database schema once before the first database test
@@ -57,7 +57,7 @@ final class DatabasePreparationSubscriber implements PreparationStartedSubscribe
 	#[\Override]
 	public function notify(PreparationStarted $event): void
 	{
-		// Check if the test is in the 'db' group
+		// Check if the test is in the 'integration' group
 		if (!$this->isDbTest($event)) {
 			return;
 		}
@@ -76,8 +76,8 @@ final class DatabasePreparationSubscriber implements PreparationStartedSubscribe
 		// Get test metadata to check for groups
 		$metadata = $test->metadata();
 
-		// Check if test has 'db' group
-		if ($metadata->isGroup('db')) {
+		// Check if test has 'integration' group
+		if ($metadata->isGroup('integration')) {
 			return true;
 		}
 
@@ -93,7 +93,7 @@ final class DatabaseCleanupSubscriber implements FinishedSubscriber
 	#[\Override]
 	public function notify(Finished $event): void
 	{
-		// Check if the test was in the 'db' group
+		// Check if the test was in the 'integration' group
 		if (!$this->isDbTest($event)) {
 			return;
 		}
@@ -109,8 +109,8 @@ final class DatabaseCleanupSubscriber implements FinishedSubscriber
 		// Get test metadata to check for groups
 		$metadata = $test->metadata();
 
-		// Check if test has 'db' group
-		if ($metadata->isGroup('db')) {
+		// Check if test has 'integration' group
+		if ($metadata->isGroup('integration')) {
 			return true;
 		}
 

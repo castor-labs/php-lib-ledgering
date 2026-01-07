@@ -17,7 +17,7 @@ services:
         condition: service_completed_successfully
     working_dir: /castor/ledgering
     environment:
-      TEST_DATABASE_URI: 'postgres://user:secret@ledgering-postgres/tests'
+      TEST_DATABASE_URI: 'postgres://user:secret@ledgering-postgres/ledgering'
       XDEBUG_MODE: 'coverage'
     volumes:
       - ./:/castor/ledgering
@@ -32,7 +32,7 @@ services:
   ledgering-postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: 'tests'
+      POSTGRES_DB: 'ledgering'
       POSTGRES_USER: 'user'
       POSTGRES_PASSWORD: 'secret'
     healthcheck:

@@ -9,11 +9,64 @@ on:
 
 jobs:
   php-checks:
-    name: PHP Checks
+    name: PHP Checks (${{ matrix.db }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - db: postgres
+            db_uri: "postgres://user:secret@localhost:5432/ledgering"
+            db_image: postgres:16-alpine
+            db_port: 5432
+          - db: mysql
+            db_uri: "mysql://user:secret@127.0.0.1:3306/ledgering"
+            db_image: mysql:8.0
+            db_port: 3306
+          - db: sqlite
+            db_uri: "sqlite:////tmp/ledgering.db"
+          - db: sqlserver
+            db_uri: "sqlsrv://sa:Secret123!@localhost:1433/ledgering"
+            db_image: mcr.microsoft.com/mssql/server:2022-latest
+            db_port: 1433
+
+    services:
+      database:
+        image: ${{ matrix.db_image || '' }}
+        env:
+          POSTGRES_DB: ledgering
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: secret
+          MYSQL_DATABASE: ledgering
+          MYSQL_USER: user
+          MYSQL_PASSWORD: secret
+          MYSQL_ROOT_PASSWORD: secret
+          ACCEPT_EULA: Y
+          SA_PASSWORD: Secret123!
+          MSSQL_PID: Developer
+        ports:
+          - ${{ matrix.db_port }}:${{ matrix.db_port }}
+
+      rabbitmq:
+        image: rabbitmq:3-management-alpine
+        ports:
+          - 5672:5672
+          - 15672:15672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics check_port_connectivity"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_URI: ${{ matrix.db_uri }}
+      TEST_BROKER_URI: amqp://guest:guest@localhost:5672/
+      CAPTURE_WORKER_STDERR: 0
+
     steps:
       - name: "Checkout Code"
-        uses: "actions/checkout@v5"
+        uses: "actions/checkout@v4"
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
         with:
@@ -21,6 +74,14 @@ jobs:
           php-version: "8.3"
           ini-values: memory_limit=-1
           tools: composer:v2
+          extensions: pdo_sqlsrv
+      - name: "Install SQL Server ODBC Driver"
+        if: matrix.db == 'sqlserver'
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
       - name: "Cache Dependencies"
         uses: "actions/cache@v4"
         with:
@@ -30,10 +91,22 @@ jobs:
           restore-keys: "composer-cache"
       - name: "Install Dependencies"
         run: "composer install --ansi --no-interaction --no-progress --no-suggest"
+      - name: "Create SQLite Database"
+        if: matrix.db == 'sqlite'
+        run: |
+          touch /tmp/ledgering.db
+          chmod 666 /tmp/ledgering.db
+      - name: "Create SQL Server Database"
+        if: matrix.db == 'sqlserver'
+        run: |
+          php -r "
+          \$conn = new PDO('sqlsrv:Server=localhost;TrustServerCertificate=yes;', 'sa', 'Secret123!');
+          \$conn->exec('CREATE DATABASE ledgering');
+          "
       - name: "Run Continuous Integration"
         run: composer ci
       - name: "Upload Coverage Report"
         uses: actions/upload-artifact@v4
         with:
-          name: "coverage-report"
+          name: "coverage-report-${{ matrix.db }}"
           path: .dev/coverage

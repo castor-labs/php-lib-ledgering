@@ -8,7 +8,7 @@ declare(strict_types=1);
  * @package castor/ledgering
  * @author Matias Navarro-Carter mnavarrocarter@gmail.com
  * @license MIT
- * @copyright 2024-2025 CastorLabs Ltd
+ * @copyright 2024-2026 CastorLabs Ltd
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -21,7 +21,7 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-#[Group('db')]
+#[Group('integration')]
 final class MigratorTest extends TestCase
 {
 	#[Test]
