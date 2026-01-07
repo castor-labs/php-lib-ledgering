@@ -44,4 +44,12 @@ final readonly class ExpirePendingTransfers
 	{
 		return new self($asOf);
 	}
+
+	/**
+	 * Create a command to expire transfers as of the current time.
+	 */
+	public static function now(): self
+	{
+		return new self(Instant::now());
+	}
 }

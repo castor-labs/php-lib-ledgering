@@ -16,8 +16,7 @@ declare(strict_types=1);
 
 namespace Castor\Symfony;
 
-use Castor\Symfony\DependencyInjection\Configuration;
-use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -32,20 +31,20 @@ final class LedgeringBundle extends AbstractBundle implements PrependExtensionIn
 {
 	protected string $extensionAlias = 'castor_ledgering';
 
-	public function configure(ConfigurationInterface $configuration): void
+	public function configure(DefinitionConfigurator $definition): void
 	{
-		// Configuration is handled by the Configuration class
+        $definition->import(__DIR__.'/../config/definition.php');
 	}
 
 	public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
-		// Set connection name parameter (defaults to null, which means default connection)
-		$connectionName = $config['dbal']['connection_name'] ?? null;
-		$container->parameters()->set('castor.ledgering.dbal.connection_name', $connectionName);
+		$connectionName = $config['dbal']['connection_name'] ?? 'doctrine.dbal.default_connection';
 
-		// Load service definitions
+        $container->services()->alias('castor.ledgering.dbal.connection_name', $connectionName);
+
 		$container->import('../config/services/core.php');
 		$container->import('../config/services/dbal.php');
+		$container->import('../config/services/commands.php');
 	}
 
 	public function prepend(ContainerBuilder $container): void
@@ -57,11 +56,6 @@ final class LedgeringBundle extends AbstractBundle implements PrependExtensionIn
 				'Castor\\Symfony\\Migrations' => $migrationsPath,
 			],
 		]);
-	}
-
-	public function getConfiguration(array $config, ContainerBuilder $container): ?ConfigurationInterface
-	{
-		return new Configuration();
 	}
 }
 

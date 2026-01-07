@@ -27,11 +27,6 @@ use Castor\Ledgering\Storage\TransferReader;
 return static function (ContainerConfigurator $container): void {
 	$services = $container->services();
 
-	// DBAL Connection - defaults to doctrine.dbal.default_connection if not configured
-	$services->set('castor.ledgering.dbal.connection')
-		->factory([service('doctrine'), 'getConnection'])
-		->args([param('castor.ledgering.dbal.connection_name')]);
-
 	// Account Repository
 	$services->set('castor.ledgering.dbal.account_repository', AccountRepository::class)
 		->args([service('castor.ledgering.dbal.connection')]);
