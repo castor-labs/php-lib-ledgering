@@ -14,14 +14,13 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Castor\Ledgering\Tests\Storage\Dbal;
+namespace Castor\Ledgering\Storage\Dbal;
 
 use Castor\Ledgering\AccountBalance;
 use Castor\Ledgering\Amount;
 use Castor\Ledgering\Balance;
 use Castor\Ledgering\Identifier;
 use Castor\Ledgering\Infra\Database;
-use Castor\Ledgering\Storage\Dbal\AccountBalanceRepository;
 use Castor\Ledgering\Storage\InvalidResult;
 use Castor\Ledgering\Time\Instant;
 use PHPUnit\Framework\Attributes\Group;

@@ -459,6 +459,15 @@ final readonly class StandardLedger implements Ledger
 		Account $debitAccount,
 		Account $creditAccount,
 	): Amount {
+		// When both BALANCING_DEBIT and BALANCING_CREDIT are set,
+		// use the minimum of what's available in debit and what's needed in credit
+		if ($command->flags->isBalancingDebit() && $command->flags->isBalancingCredit()) {
+			$debitAmount = $this->calculateBalancingAmount($debitAccount);
+			$creditAmount = $this->calculateBalancingAmount($creditAccount);
+
+			return $debitAmount->value < $creditAmount->value ? $debitAmount : $creditAmount;
+		}
+
 		if ($command->flags->isBalancingDebit()) {
 			return $this->calculateBalancingAmount($debitAccount);
 		}

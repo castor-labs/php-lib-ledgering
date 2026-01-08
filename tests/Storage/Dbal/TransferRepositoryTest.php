@@ -14,13 +14,12 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Castor\Ledgering\Tests\Storage\Dbal;
+namespace Castor\Ledgering\Storage\Dbal;
 
 use Castor\Ledgering\Amount;
 use Castor\Ledgering\Code;
 use Castor\Ledgering\Identifier;
 use Castor\Ledgering\Infra\Database;
-use Castor\Ledgering\Storage\Dbal\TransferRepository;
 use Castor\Ledgering\Storage\InvalidResult;
 use Castor\Ledgering\Time\Duration;
 use Castor\Ledgering\Time\Instant;

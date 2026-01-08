@@ -14,22 +14,13 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Castor\Ledgering\Tests;
+namespace Castor\Ledgering;
 
-use Castor\Ledgering\ConstraintViolation;
-use Castor\Ledgering\CreateAccount;
-use Castor\Ledgering\CreateTransfer;
-use Castor\Ledgering\ErrorCode;
-use Castor\Ledgering\ExpirePendingTransfers;
-use Castor\Ledgering\FixedClock;
-use Castor\Ledgering\Identifier;
-use Castor\Ledgering\StandardLedger;
 use Castor\Ledgering\Storage\InMemory\AccountBalanceCollection;
 use Castor\Ledgering\Storage\InMemory\AccountCollection;
 use Castor\Ledgering\Storage\InMemory\TransferCollection;
 use Castor\Ledgering\Time\Duration;
 use Castor\Ledgering\Time\Instant;
-use Castor\Ledgering\TransferFlags;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 

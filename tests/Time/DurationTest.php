@@ -14,9 +14,8 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Castor\Ledgering\Tests\Time;
+namespace Castor\Ledgering\Time;
 
-use Castor\Ledgering\Time\Duration;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;

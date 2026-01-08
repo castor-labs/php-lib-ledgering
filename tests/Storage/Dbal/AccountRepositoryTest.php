@@ -14,7 +14,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Castor\Ledgering\Tests\Storage\Dbal;
+namespace Castor\Ledgering\Storage\Dbal;
 
 use Castor\Ledgering\Account;
 use Castor\Ledgering\AccountFlags;
@@ -23,7 +23,6 @@ use Castor\Ledgering\Balance;
 use Castor\Ledgering\Code;
 use Castor\Ledgering\Identifier;
 use Castor\Ledgering\Infra\Database;
-use Castor\Ledgering\Storage\Dbal\AccountRepository;
 use Castor\Ledgering\Time\Instant;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
