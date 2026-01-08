@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/castor-labs/php-lib-ledgering/compare/0.1.1...0.2.0) (2026-01-08)
+
+
+### Features
+
+* Implement idempotency decorator ([#5](https://github.com/castor-labs/php-lib-ledgering/issues/5)) ([5fc710a](https://github.com/castor-labs/php-lib-ledgering/commit/5fc710a09f00b493ba5324a08e710b16746b6c5e))
+
 ## [0.1.1](https://github.com/castor-labs/php-lib-ledgering/compare/0.1.0...0.1.1) (2026-01-08)
 
 
