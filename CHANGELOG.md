@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/castor-labs/php-lib-ledgering/compare/0.1.0...0.1.1) (2026-01-08)
+
+
+### Fixes
+
+* Correctly handle when both balancing flags are present in a transfer ([e869732](https://github.com/castor-labs/php-lib-ledgering/commit/e869732cf08a5f39f3dc76d1d89e39477b988407))
+
 ## 0.1.0 (2026-01-07)
 
 
