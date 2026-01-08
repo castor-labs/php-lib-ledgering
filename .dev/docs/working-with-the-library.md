@@ -527,6 +527,44 @@ try {
 >
 > Both patterns make retries safe without worrying about duplicates.
 
+> [!WARNING]
+> **Batch operations and storage backends**
+>
+> When executing multiple commands in a single batch, the behavior differs between storage backends if an error occurs mid-batch:
+>
+> **With DBAL storage (TransactionalLedger)**:
+> - All operations are wrapped in a database transaction
+> - If any command fails (e.g., 3rd account in a batch of 5), the entire transaction rolls back
+> - No partial state is persisted—it's all-or-nothing
+>
+> **With in-memory storage**:
+> - No transaction support—changes are written immediately
+> - If a command fails mid-batch, previous commands remain in memory
+> - This creates partial state that cannot be rolled back
+>
+> **Example scenario**:
+> ```php
+> // Batch of 5 accounts, 3rd one already exists
+> $ledger->execute(
+>     CreateAccount::with(id: $id1, ...),  // ✓ Succeeds
+>     CreateAccount::with(id: $id2, ...),  // ✓ Succeeds
+>     CreateAccount::with(id: $id3, ...),  // ✗ Already exists!
+>     CreateAccount::with(id: $id4, ...),  // Never executed
+>     CreateAccount::with(id: $id5, ...),  // Never executed
+> );
+> ```
+>
+> - **DBAL**: Transaction rolls back → accounts 1 & 2 are NOT created
+> - **In-memory**: No rollback → accounts 1 & 2 ARE created (partial state)
+>
+> **With IdempotentLedger**, this becomes more subtle:
+> - The duplicate error is suppressed silently
+> - DBAL still rolls back the transaction (accounts 1 & 2 lost)
+> - In-memory keeps accounts 1 & 2 (partial state persists)
+> - Your application may not realize anything went wrong
+>
+> **Recommendation**: Always use `TransactionalLedger` with DBAL storage in production for atomic batch operations. Use in-memory storage only for testing where you control the data.
+
 ## Best Practices
 
 Here are some tips for using Castor Ledgering effectively:
