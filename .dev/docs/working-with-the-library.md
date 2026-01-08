@@ -85,6 +85,32 @@ The `TransactionalLedger` wrapper ensures that all operations are atomic—eithe
 >
 > Always use `TransactionalLedger` in production. It ensures that if you execute multiple commands together, they either all succeed or all fail. No partial updates.
 
+### Combining Decorators
+
+You can combine multiple decorators for different behaviors. For example, to have both transactions and idempotency:
+
+```php
+use Castor\Ledgering\IdempotentLedger;
+use Castor\Ledgering\Storage\Dbal\TransactionalLedger;
+
+$ledger = new IdempotentLedger(
+    new TransactionalLedger(
+        connection: $connection,
+        ledger: new StandardLedger(
+            accounts: new AccountRepository($connection),
+            transfers: new TransferRepository($connection),
+            accountBalances: new AccountBalanceRepository($connection),
+        ),
+    ),
+);
+```
+
+This gives you:
+- **Atomicity** from `TransactionalLedger` (all-or-nothing operations)
+- **Idempotency** from `IdempotentLedger` (safe retries without duplicate errors)
+
+Perfect for distributed systems where you need both transactional guarantees and retry safety.
+
 ## Linking the Ledger to Your Application
 
 This is where the magic happens. You use **external identifiers** to connect ledger entities to your application's domain model.
@@ -465,7 +491,27 @@ try {
 >
 > The ledger throws `AccountAlreadyExists` and `TransferAlreadyExists` errors when you try to create duplicates. This is intentional—it lets you decide how to handle them.
 >
-> For idempotent behavior (safe retries), catch these errors:
+> **Option 1: Use the IdempotentLedger decorator (recommended)**
+>
+> For automatic idempotent behavior, wrap your ledger with `IdempotentLedger`:
+>
+> ```php
+> use Castor\Ledgering\IdempotentLedger;
+>
+> $ledger = new IdempotentLedger(
+>     new StandardLedger($accounts, $transfers, $accountBalances)
+> );
+>
+> // Safe to retry - won't throw if account already exists
+> $ledger->execute($createAccount);
+> $ledger->execute($createAccount);  // No error!
+> ```
+>
+> This is perfect for retry scenarios and distributed systems where you need operations to be safe to retry.
+>
+> **Option 2: Manual error handling**
+>
+> If you need more control, catch the errors manually:
 >
 > ```php
 > try {
@@ -479,7 +525,7 @@ try {
 > }
 > ```
 >
-> This pattern makes retries safe without worrying about duplicates.
+> Both patterns make retries safe without worrying about duplicates.
 
 ## Best Practices
 

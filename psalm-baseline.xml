@@ -40,6 +40,15 @@
       <code><![CDATA[metadata]]></code>
     </UndefinedMethod>
   </file>
+  <file src="tests/IdempotentLedgerTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[$accountBalances]]></code>
+      <code><![CDATA[$accounts]]></code>
+      <code><![CDATA[$ledger]]></code>
+      <code><![CDATA[$standardLedger]]></code>
+      <code><![CDATA[$transfers]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
   <file src="tests/StandardLedgerTest.php">
     <PropertyNotSetInConstructor>
       <code><![CDATA[$accountBalances]]></code>
