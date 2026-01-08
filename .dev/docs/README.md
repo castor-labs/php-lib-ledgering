@@ -59,7 +59,7 @@ Building financial systems is hard. You need:
 Castor Ledgering gives you all of this by:
 
 1. **Double-Entry Bookkeeping** - Every transfer debits one account and credits another. The books always balance.
-2. **TigerBeetle Backend** - A purpose-built financial database that's ACID-compliant and blazingly fast.
+2. **RDBMS Backend** - Built on proven relational databases (PostgreSQL, MySQL) with a domain model inspired by TigerBeetle's design.
 3. **Type Safety** - Immutable value objects prevent invalid states at compile time.
 4. **Rich Domain Model** - Express complex business rules directly in the ledger.
 

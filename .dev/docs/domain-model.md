@@ -443,7 +443,7 @@ $instant = Instant::fromUnixTimestamp(1234567890);
 
 ### Duration
 
-A time duration in nanoseconds.
+A time duration in seconds.
 
 ```php
 use Castor\Ledgering\Time\Duration;

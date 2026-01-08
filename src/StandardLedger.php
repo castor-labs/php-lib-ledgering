@@ -146,7 +146,7 @@ final readonly class StandardLedger implements Ledger
 	{
 		$existing = $this->transfers->ofId($command->id)->first();
 		if ($existing !== null) {
-			return;
+			throw ConstraintViolation::transferAlreadyExists($command->id);
 		}
 
 		$debitAccount = $this->loadAccount($command->debitAccountId);
@@ -202,6 +202,11 @@ final readonly class StandardLedger implements Ledger
 	 */
 	private function postPendingTransfer(CreateTransfer $command): void
 	{
+		$existing = $this->transfers->ofId($command->id)->first();
+		if ($existing !== null) {
+			throw ConstraintViolation::transferAlreadyExists($command->id);
+		}
+
 		$pendingTransfer = $this->loadPendingTransfer($command->pendingId);
 
 		$debitAccount = $this->loadAccount($pendingTransfer->debitAccountId);
@@ -288,6 +293,11 @@ final readonly class StandardLedger implements Ledger
 	 */
 	private function voidPendingTransfer(CreateTransfer $command): void
 	{
+		$existing = $this->transfers->ofId($command->id)->first();
+		if ($existing !== null) {
+			throw ConstraintViolation::transferAlreadyExists($command->id);
+		}
+
 		$pendingTransfer = $this->loadPendingTransfer($command->pendingId);
 
 		$debitAccount = $this->loadAccount($pendingTransfer->debitAccountId);

@@ -39,12 +39,17 @@ final class LedgeringBundle extends AbstractBundle implements PrependExtensionIn
 	public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
 		$connectionName = $config['dbal']['connection_name'] ?? 'doctrine.dbal.default_connection';
+		$idempotency = $config['idempotency'] ?? true;
 
         $container->services()->alias('castor.ledgering.dbal.connection_name', $connectionName);
 
 		$container->import('../config/services/core.php');
 		$container->import('../config/services/dbal.php');
 		$container->import('../config/services/commands.php');
+
+		if ($idempotency) {
+			$container->import('../config/services/idempotency.php');
+		}
 	}
 
 	public function prepend(ContainerBuilder $container): void

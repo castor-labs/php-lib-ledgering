@@ -123,7 +123,7 @@ final class StandardLedgerTest extends TestCase
 	}
 
 	#[Test]
-	public function it_makes_transfers_idempotent(): void
+	public function it_throws_when_transfer_already_exists(): void
 	{
 		// Create accounts
 		$this->ledger->execute(
@@ -142,15 +142,12 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		$this->ledger->execute($command);
-		$this->ledger->execute($command); // Same command again
 
-		// Only 1 transfer should exist
-		$transfers = $this->transfers->toList();
-		self::assertCount(1, $transfers);
+		// Attempting to create the same transfer again should throw
+		$this->expectException(ConstraintViolation::class);
+		$this->expectExceptionMessage('Transfer with ID 10000000000000000000000000000001 already exists');
 
-		// Balance should only be updated once
-		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
-		self::assertSame(1000, $debitAccount->balance->debitsPosted->value);
+		$this->ledger->execute($command);
 	}
 
 	#[Test]

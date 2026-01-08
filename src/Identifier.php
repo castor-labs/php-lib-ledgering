@@ -101,6 +101,24 @@ final readonly class Identifier
 	}
 
 	/**
+	 * Create an identifier by hashing a string using MD5.
+	 *
+	 * This is useful for creating deterministic identifiers from application IDs
+	 * (e.g., user IDs, order IDs) to use as external identifiers.
+	 *
+	 * Note: For UUIDs, ULIDs, or other 128-bit identifiers, prefer using fromBytes()
+	 * or fromHex() directly instead of hashing.
+	 *
+	 * @param string $value The string to hash
+	 *
+	 * @return self A new identifier created from the MD5 hash
+	 */
+	public static function hashOf(string $value): self
+	{
+		return new self(\md5($value, true));
+	}
+
+	/**
 	 * Get the hexadecimal representation (lowercase, no hyphens).
 	 */
 	public function toHex(): string

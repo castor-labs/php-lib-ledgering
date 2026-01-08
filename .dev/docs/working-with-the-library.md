@@ -85,6 +85,32 @@ The `TransactionalLedger` wrapper ensures that all operations are atomic—eithe
 >
 > Always use `TransactionalLedger` in production. It ensures that if you execute multiple commands together, they either all succeed or all fail. No partial updates.
 
+### Combining Decorators
+
+You can combine multiple decorators for different behaviors. For example, to have both transactions and idempotency:
+
+```php
+use Castor\Ledgering\IdempotentLedger;
+use Castor\Ledgering\Storage\Dbal\TransactionalLedger;
+
+$ledger = new IdempotentLedger(
+    new TransactionalLedger(
+        connection: $connection,
+        ledger: new StandardLedger(
+            accounts: new AccountRepository($connection),
+            transfers: new TransferRepository($connection),
+            accountBalances: new AccountBalanceRepository($connection),
+        ),
+    ),
+);
+```
+
+This gives you:
+- **Atomicity** from `TransactionalLedger` (all-or-nothing operations)
+- **Idempotency** from `IdempotentLedger` (safe retries without duplicate errors)
+
+Perfect for distributed systems where you need both transactional guarantees and retry safety.
+
 ## Linking the Ledger to Your Application
 
 This is where the magic happens. You use **external identifiers** to connect ledger entities to your application's domain model.
@@ -111,7 +137,7 @@ $ledger->execute(
         ledger: 1,  // USD
         code: 100,  // Checking account
         flags: AccountFlags::DEBITS_MUST_NOT_EXCEED_CREDITS,
-        externalIdPrimary: Identifier::fromHex(md5($userId)),  // Link to user!
+        externalIdPrimary: Identifier::hashOf($userId),  // Link to user!
     ),
 );
 ```
@@ -121,7 +147,7 @@ Now the ledger account is linked to your user. Later, you can find the account b
 ```php
 // Find the ledger account for a user
 $account = $accounts
-    ->ofExternalIdPrimary(Identifier::fromHex(md5($userId)))
+    ->ofExternalIdPrimary(Identifier::hashOf($userId))
     ->first();
 
 if ($account === null) {
@@ -130,11 +156,31 @@ if ($account === null) {
 ```
 
 > [!NOTE]
-> **Why use md5() for the external ID?**
+> **Working with different ID formats**
 >
-> The ledger expects a 128-bit identifier (16 bytes). If your application uses UUIDs or strings, you need to convert them to 128 bits.
+> The ledger uses 128-bit identifiers (16 bytes). Here's how to convert your application's IDs:
 >
-> `md5()` is a quick way to do this (it produces a 128-bit hash). For UUIDs, you can use `Identifier::fromHex($uuid)` directly if your UUID is in hex format.
+> **For string IDs** (user IDs, order IDs, etc.):
+> ```php
+> $externalId = Identifier::hashOf($userId);  // Uses MD5 hashing
+> ```
+>
+> **For UUIDs** (already 128-bit):
+> ```php
+> // If your UUID is in hex format (with or without hyphens)
+> $externalId = Identifier::fromHex($uuid);
+>
+> // If your UUID is in binary format
+> $externalId = Identifier::fromBytes($uuidBytes);
+> ```
+>
+> **For ULIDs or other 128-bit identifiers**:
+> ```php
+> // Convert to bytes first, then use fromBytes()
+> $externalId = Identifier::fromBytes($ulid->toBytes());
+> ```
+>
+> The `hashOf()` method is deterministic—the same input always produces the same identifier.
 
 ### Example: Linking Transfers to Orders
 
@@ -155,7 +201,7 @@ $ledger->execute(
         amount: 5000,  // $50.00
         ledger: 1,
         code: 1,  // Payment
-        externalIdPrimary: Identifier::fromHex(md5($orderId)),  // Link to order!
+        externalIdPrimary: Identifier::hashOf($orderId),  // Link to order!
     ),
 );
 ```
@@ -165,7 +211,7 @@ Later, you can find the transfer by order ID:
 ```php
 // Find the transfer for an order
 $transfer = $transfers
-    ->ofExternalIdPrimary(Identifier::fromHex(md5($orderId)))
+    ->ofExternalIdPrimary(Identifier::hashOf($orderId))
     ->first();
 ```
 
@@ -188,8 +234,8 @@ $ledger->execute(
         amount: 1000,
         ledger: 1,
         code: 1,
-        externalIdPrimary: Identifier::fromHex(md5($orderId)),      // Order
-        externalIdSecondary: Identifier::fromHex(md5($invoiceId)),  // Invoice
+        externalIdPrimary: Identifier::hashOf($orderId),      // Order
+        externalIdSecondary: Identifier::hashOf($invoiceId),  // Invoice
         externalCodePrimary: 42,  // Your app's category code
     ),
 );
@@ -212,9 +258,43 @@ $account = $accounts->ofId($accountId)->one();    // Returns Account or throws
 $account = $accounts->ofExternalIdPrimary($userId)->first();
 $account = $accounts->ofExternalIdSecondary($customerId)->first();
 
-// Get multiple accounts at once
+// Get multiple accounts at once (OR query)
 $accountList = $accounts->ofId($id1, $id2, $id3)->toList();
+
+// Filter by ledger
+$usdAccounts = $accounts->ofLedger(1)->toList();  // All USD accounts
+
+// Filter by code (account type)
+$checkingAccounts = $accounts->ofCode(100)->toList();
+
+// Combine filters (AND query)
+$customerUsdAccounts = $accounts
+    ->ofLedger(1)      // USD
+    ->ofCode(100)      // Checking accounts
+    ->toList();
 ```
+
+> [!TIP]
+> **All `of*()` methods accept multiple arguments**
+>
+> You can pass multiple values to any `of*()` method for OR queries:
+>
+> ```php
+> // Find accounts with any of these IDs
+> $accounts->ofId($id1, $id2, $id3)->toList();
+>
+> // Find accounts with any of these codes
+> $accounts->ofCode(100, 200, 300)->toList();  // Checking, savings, or loans
+>
+> // Find accounts on any of these ledgers
+> $accounts->ofLedger(1, 2)->toList();  // USD or EUR
+> ```
+>
+> When you chain methods, they work as AND conditions:
+> ```php
+> // USD accounts that are EITHER checking OR savings
+> $accounts->ofLedger(1)->ofCode(100, 200)->toList();
+> ```
 
 **When to use `first()` vs `one()`:**
 - Use `first()` when the account might not exist (returns `null`)
@@ -371,21 +451,21 @@ use Castor\Ledgering\ErrorCode;
 try {
     $ledger->execute($command);
 } catch (ConstraintViolation $e) {
-    // Check what went wrong
-    match ($e->getCode()) {
-        ErrorCode::AccountAlreadyExists->value => {
+    // Check what went wrong using the errorCode property
+    match ($e->errorCode) {
+        ErrorCode::AccountAlreadyExists => {
             // You tried to create an account with an ID that already exists
             // This is usually fine - accounts are idempotent
         },
-        ErrorCode::AccountNotFound->value => {
+        ErrorCode::AccountNotFound => {
             // You referenced an account that doesn't exist
             // Create it first!
         },
-        ErrorCode::InsufficientFunds->value => {
+        ErrorCode::DebitsExceedCredits => {
             // Overdraft! The account doesn't have enough funds
             // This happens when DEBITS_MUST_NOT_EXCEED_CREDITS is set
         },
-        ErrorCode::LedgerMismatch->value => {
+        ErrorCode::LedgerMismatch => {
             // You tried to transfer between accounts with different ledger codes
             // Can't transfer USD to EUR directly!
         },
@@ -396,18 +476,94 @@ try {
 
 ### Common Error Codes
 
-- **AccountAlreadyExists**: Account with this ID already exists (usually safe to ignore)
+- **AccountAlreadyExists**: Account with this ID already exists
 - **AccountNotFound**: Referenced account doesn't exist
-- **InsufficientFunds**: Overdraft prevented by account flags
+- **DebitsExceedCredits**: Overdraft prevented by `DEBITS_MUST_NOT_EXCEED_CREDITS` flag
+- **CreditsExceedDebits**: Overpayment prevented by `CREDITS_MUST_NOT_EXCEED_DEBITS` flag
 - **LedgerMismatch**: Accounts have different ledger codes
-- **TransferAlreadyExists**: Transfer with this ID already exists (usually safe to ignore)
+- **TransferAlreadyExists**: Transfer with this ID already exists
+- **PendingTransferNotFound**: Referenced pending transfer doesn't exist
+- **PendingTransferExpired**: Pending transfer has timed out
+- **AccountClosed**: Account is closed (has `CLOSED` flag)
 
-> [!TIP]
-> **Idempotency**
+> [!NOTE]
+> **Handling duplicate operations**
 >
-> Creating an account or transfer with the same ID twice is safe. The ledger will reject the duplicate, but it's not an error—it means the operation already succeeded.
+> The ledger throws `AccountAlreadyExists` and `TransferAlreadyExists` errors when you try to create duplicates. This is intentional—it lets you decide how to handle them.
 >
-> This makes it safe to retry operations without worrying about duplicates.
+> **Option 1: Use the IdempotentLedger decorator (recommended)**
+>
+> For automatic idempotent behavior, wrap your ledger with `IdempotentLedger`:
+>
+> ```php
+> use Castor\Ledgering\IdempotentLedger;
+>
+> $ledger = new IdempotentLedger(
+>     new StandardLedger($accounts, $transfers, $accountBalances)
+> );
+>
+> // Safe to retry - won't throw if account already exists
+> $ledger->execute($createAccount);
+> $ledger->execute($createAccount);  // No error!
+> ```
+>
+> This is perfect for retry scenarios and distributed systems where you need operations to be safe to retry.
+>
+> **Option 2: Manual error handling**
+>
+> If you need more control, catch the errors manually:
+>
+> ```php
+> try {
+>     $ledger->execute($createAccount);
+> } catch (ConstraintViolation $e) {
+>     if ($e->errorCode === ErrorCode::AccountAlreadyExists) {
+>         // Already exists, that's fine
+>         return;
+>     }
+>     throw $e;
+> }
+> ```
+>
+> Both patterns make retries safe without worrying about duplicates.
+
+> [!WARNING]
+> **Batch operations and storage backends**
+>
+> When executing multiple commands in a single batch, the behavior differs between storage backends if an error occurs mid-batch:
+>
+> **With DBAL storage (TransactionalLedger)**:
+> - All operations are wrapped in a database transaction
+> - If any command fails (e.g., 3rd account in a batch of 5), the entire transaction rolls back
+> - No partial state is persisted—it's all-or-nothing
+>
+> **With in-memory storage**:
+> - No transaction support—changes are written immediately
+> - If a command fails mid-batch, previous commands remain in memory
+> - This creates partial state that cannot be rolled back
+>
+> **Example scenario**:
+> ```php
+> // Batch of 5 accounts, 3rd one already exists
+> $ledger->execute(
+>     CreateAccount::with(id: $id1, ...),  // ✓ Succeeds
+>     CreateAccount::with(id: $id2, ...),  // ✓ Succeeds
+>     CreateAccount::with(id: $id3, ...),  // ✗ Already exists!
+>     CreateAccount::with(id: $id4, ...),  // Never executed
+>     CreateAccount::with(id: $id5, ...),  // Never executed
+> );
+> ```
+>
+> - **DBAL**: Transaction rolls back → accounts 1 & 2 are NOT created
+> - **In-memory**: No rollback → accounts 1 & 2 ARE created (partial state)
+>
+> **With IdempotentLedger**, this becomes more subtle:
+> - The duplicate error is suppressed silently
+> - DBAL still rolls back the transaction (accounts 1 & 2 lost)
+> - In-memory keeps accounts 1 & 2 (partial state persists)
+> - Your application may not realize anything went wrong
+>
+> **Recommendation**: Always use `TransactionalLedger` with DBAL storage in production for atomic batch operations. Use in-memory storage only for testing where you control the data.
 
 ## Best Practices
 
@@ -419,7 +575,7 @@ Use consistent hashing of your application IDs:
 
 ```php
 // ✓ Good: Deterministic
-$accountId = Identifier::fromHex(md5($userId));
+$accountId = Identifier::hashOf($userId);
 
 // ❌ Bad: Random (can't find it later)
 $accountId = Identifier::fromHex(bin2hex(random_bytes(16)));
@@ -492,23 +648,31 @@ $ledger->execute($createAccount2);
 $ledger->execute($createTransfer);  // Might fail, leaving orphaned accounts
 ```
 
-### 6. Handle Idempotency
+### 6. Handle Duplicate Operations
 
-Commands are idempotent—duplicates are safe:
+The ledger throws errors for duplicates. Handle them for idempotent retries:
 
 ```php
-// Creating the same account twice is safe
-$ledger->execute(
-    CreateAccount::with(id: $accountId, /* ... */),
-);
+// ✓ Good: Handle duplicates explicitly
+try {
+    $ledger->execute(
+        CreateAccount::with(id: $accountId, /* ... */),
+    );
+} catch (ConstraintViolation $e) {
+    if ($e->errorCode === ErrorCode::AccountAlreadyExists) {
+        // Already exists, that's fine
+        return;
+    }
+    throw $e;
+}
 
-// Second call is rejected, but doesn't throw
+// ❌ Bad: Letting duplicates propagate as errors
 $ledger->execute(
     CreateAccount::with(id: $accountId, /* ... */),
-);
+);  // Throws on retry!
 ```
 
-This makes retries safe.
+This pattern makes retries safe without creating duplicates.
 
 ### 7. Never Use Floats for Money
 
