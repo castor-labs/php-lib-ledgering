@@ -107,18 +107,18 @@ You should link these two transfers together so you can track them as a single e
 
 ```php
 // Generate a unique exchange ID
-$exchangeId = Identifier::fromHex(md5('exchange-' . $orderId));
+$exchangeId = Identifier::hashOf('exchange-' . $orderId);
 
 $transfer1 = CreateTransfer::with(
     // ... other fields
     externalIdPrimary: $exchangeId,  // Link to exchange
-    externalIdSecondary: Identifier::fromHex(md5($customerId)),
+    externalIdSecondary: Identifier::hashOf($customerId),
 );
 
 $transfer2 = CreateTransfer::with(
     // ... other fields
     externalIdPrimary: $exchangeId,  // Same exchange ID!
-    externalIdSecondary: Identifier::fromHex(md5($customerId)),
+    externalIdSecondary: Identifier::hashOf($customerId),
 );
 ```
 
@@ -148,6 +148,13 @@ function convertCurrency(
 
     // Round to nearest cent
     return (int) round($converted);
+}
+
+// Example: $100 USD to EUR at 0.85 rate
+$usdAmount = 10000;  // $100.00
+$exchangeRate = 0.85;
+$eurAmount = convertCurrency($usdAmount, $exchangeRate);  // 8500 (€85.00)
+```
 
 > [!TIP]
 > **Where do exchange rates come from?**
@@ -430,7 +437,7 @@ $service = new CurrencyExchangeService($ledger, $accounts, $rateProvider);
 
 try {
     $result = $service->exchange(
-        customerId: Identifier::fromHex(md5('customer-123')),
+        customerId: Identifier::hashOf('customer-123'),
         amountCents: 10000,      // $100.00
         sourceLedger: 1,         // USD
         targetLedger: 2,         // EUR
