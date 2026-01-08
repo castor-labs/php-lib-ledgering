@@ -1,0 +1,832 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Loan Simulator REPL
+ *
+ * Interactive loan simulation with interest accrual and waterfall repayments.
+ */
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Castor\Ledgering\Account;
+use Castor\Ledgering\AccountFlags;
+use Castor\Ledgering\Amount;
+use Castor\Ledgering\CreateAccount;
+use Castor\Ledgering\CreateTransfer;
+use Castor\Ledgering\FixedClock;
+use Castor\Ledgering\Identifier;
+use Castor\Ledgering\Ledger;
+use Castor\Ledgering\StandardLedger;
+use Castor\Ledgering\Storage\InMemory\AccountBalanceCollection;
+use Castor\Ledgering\Storage\InMemory\AccountCollection;
+use Castor\Ledgering\Storage\InMemory\TransferCollection;
+use Castor\Ledgering\Time\Instant;
+use Castor\Ledgering\Transfer;
+use Castor\Ledgering\TransferFlags;
+
+/**
+ * Loan Simulator with APR-based interest accrual and waterfall repayments.
+ */
+final class LoanSimulator
+{
+    private bool $disbursed = false;
+    private ?Instant $lastAccrualDate = null;
+    private int $transactionCounter = 0;
+    private array $transactions = [];
+
+    public function __construct(
+        private readonly Ledger $ledger,
+        private readonly AccountCollection $accounts,
+        private readonly TransferCollection $transfers,
+        private readonly FixedClock $clock,
+        private readonly float $apr,
+        private readonly int $principalAmountPence,
+        private readonly Identifier $revenueId,
+        private readonly Identifier $customerCashId,
+        private readonly Identifier $controlAccountId,
+        private readonly Identifier $principalId,
+        private readonly Identifier $interestId,
+        private readonly Identifier $feesId,
+        private readonly Identifier $overpaymentId,
+    ) {}
+
+    public static function create(float $apr, int $amountPence): self
+    {
+        $accounts = new AccountCollection();
+        $transfers = new TransferCollection();
+        $balances = new AccountBalanceCollection();
+        $clock = FixedClock::at((int) time());
+
+        $ledger = new StandardLedger($accounts, $transfers, $balances, $clock);
+
+        // Create accounts
+        $revenueId = Identifier::fromHex('0000000000000000000000000000000' . '1');
+        $customerCashId = Identifier::fromHex('1000000000000000000000000000000' . '0');
+        $controlAccountId = Identifier::fromHex('1000000000000000000000000000000' . '1');
+        $principalId = Identifier::fromHex('1000000000000000000000000000000' . '2');
+        $interestId = Identifier::fromHex('1000000000000000000000000000000' . '3');
+        $feesId = Identifier::fromHex('1000000000000000000000000000000' . '4');
+        $overpaymentId = Identifier::fromHex('1000000000000000000000000000000' . '5');
+
+        $ledger->execute(
+            // Revenue account (Asset) - collects fees and interest income
+            CreateAccount::with(
+                id: $revenueId,
+                ledger: 1,
+                code: 500,
+            ),
+            // Customer cash account - customer's funds
+            CreateAccount::with(
+                id: $customerCashId,
+                ledger: 1,
+                code: 1000,
+            ),
+            // Control account - temporary holding for repayment waterfall
+            CreateAccount::with(
+                id: $controlAccountId,
+                ledger: 1,
+                code: 1001,
+                flags: AccountFlags::DEBITS_MUST_NOT_EXCEED_CREDITS,
+            ),
+            // Loan Principal (Asset) - amount owed by customer
+            CreateAccount::with(
+                id: $principalId,
+                ledger: 1,
+                code: 2001,
+                flags: AccountFlags::CREDITS_MUST_NOT_EXCEED_DEBITS,
+            ),
+            // Loan Interest (Asset) - interest owed by customer
+            CreateAccount::with(
+                id: $interestId,
+                ledger: 1,
+                code: 3001,
+                flags: AccountFlags::CREDITS_MUST_NOT_EXCEED_DEBITS,
+            ),
+            // Loan Fees (Asset) - fees owed by customer
+            CreateAccount::with(
+                id: $feesId,
+                ledger: 1,
+                code: 4001,
+                flags: AccountFlags::CREDITS_MUST_NOT_EXCEED_DEBITS,
+            ),
+            // Overpayment account - holds excess repayments
+            CreateAccount::with(
+                id: $overpaymentId,
+                ledger: 1,
+                code: 5001,
+            ),
+        );
+
+        return new self(
+            ledger: $ledger,
+            accounts: $accounts,
+            transfers: $transfers,
+            clock: $clock,
+            apr: $apr,
+            principalAmountPence: $amountPence,
+            revenueId: $revenueId,
+            customerCashId: $customerCashId,
+            controlAccountId: $controlAccountId,
+            principalId: $principalId,
+            interestId: $interestId,
+            feesId: $feesId,
+            overpaymentId: $overpaymentId,
+        );
+    }
+
+    public function disburse(): void
+    {
+        if ($this->disbursed) {
+            throw new RuntimeException('Loan already disbursed');
+        }
+
+        $transferId = $this->nextTransferId();
+
+        $this->ledger->execute(
+            CreateTransfer::with(
+                id: $transferId,
+                debitAccountId: $this->principalId,
+                creditAccountId: $this->customerCashId,
+                amount: $this->principalAmountPence,
+                ledger: 1,
+                code: 10,
+            ),
+        );
+
+        $this->disbursed = true;
+        $this->lastAccrualDate = $this->clock->now();
+
+        $this->transactions[] = [
+            'type' => 'disbursement',
+            'date' => $this->clock->now(),
+            'amount' => $this->principalAmountPence,
+        ];
+    }
+
+    public function advanceDays(int $days): void
+    {
+        $this->ensureDisbursed();
+
+        if ($days < 0) {
+            throw new InvalidArgumentException('Days must be non-negative');
+        }
+
+        $seconds = $days * 86400; // 24 * 60 * 60
+        $newTime = Instant::of($this->clock->now()->seconds + $seconds, $this->clock->now()->nano);
+        $this->clock->setNow($newTime);
+    }
+
+    public function cycle(int $count = 1): array
+    {
+        $this->ensureDisbursed();
+
+        if ($count < 1) {
+            throw new InvalidArgumentException('Cycle count must be at least 1');
+        }
+
+        $results = [];
+
+        for ($i = 0; $i < $count; $i++) {
+            $currentTimestamp = $this->clock->now()->seconds;
+            $currentDate = getdate($currentTimestamp);
+
+            // Calculate the first day of next month
+            $nextMonth = $currentDate['mon'] + 1;
+            $nextYear = $currentDate['year'];
+
+            if ($nextMonth > 12) {
+                $nextMonth = 1;
+                $nextYear++;
+            }
+
+            $firstDayOfNextMonth = mktime(0, 0, 0, $nextMonth, 1, $nextYear);
+            $daysDifference = (int) (($firstDayOfNextMonth - $currentTimestamp) / 86400);
+
+            // Advance to first day of next month
+            $newTime = Instant::of($firstDayOfNextMonth, 0);
+            $this->clock->setNow($newTime);
+
+            // Get interest before accrual
+            $interest = $this->accounts->ofId($this->interestId)->one();
+            $interestBefore = $interest->balance->debitsPosted->value - $interest->balance->creditsPosted->value;
+
+            // Automatically accrue interest
+            $this->accrueInterest();
+
+            // Get interest after accrual
+            $interest = $this->accounts->ofId($this->interestId)->one();
+            $interestAfter = $interest->balance->debitsPosted->value - $interest->balance->creditsPosted->value;
+            $interestAccrued = $interestAfter - $interestBefore;
+
+            $results[] = [
+                'days' => $daysDifference,
+                'date' => $this->clock->now(),
+                'interest' => $interestAccrued,
+            ];
+        }
+
+        return $results;
+    }
+
+    public function accrueInterest(): void
+    {
+        $this->ensureDisbursed();
+
+        $currentDate = $this->clock->now();
+        $daysSinceLastAccrual = $this->calculateDaysSince($this->lastAccrualDate, $currentDate);
+
+        if ($daysSinceLastAccrual === 0) {
+            // No accrual needed
+            return;
+        }
+
+        // Get outstanding principal balance
+        $principal = $this->accounts->ofId($this->principalId)->one();
+        $outstandingPrincipal = $principal->balance->debitsPosted->value - $principal->balance->creditsPosted->value;
+
+        if ($outstandingPrincipal <= 0) {
+            // No principal to accrue interest on
+            $this->lastAccrualDate = $currentDate;
+            return;
+        }
+
+        // Calculate interest: principal * (APR / 365) * days
+        $dailyRate = $this->apr / 365.0;
+        $interestAmount = (int) round($outstandingPrincipal * $dailyRate * $daysSinceLastAccrual);
+
+        if ($interestAmount <= 0) {
+            $this->lastAccrualDate = $currentDate;
+            return;
+        }
+
+        $transferId = $this->nextTransferId();
+
+        $this->ledger->execute(
+            CreateTransfer::with(
+                id: $transferId,
+                debitAccountId: $this->interestId,
+                creditAccountId: $this->revenueId,
+                amount: $interestAmount,
+                ledger: 1,
+                code: 20,
+            ),
+        );
+
+        $this->lastAccrualDate = $currentDate;
+
+        $this->transactions[] = [
+            'type' => 'interest_accrual',
+            'date' => $currentDate,
+            'amount' => $interestAmount,
+            'days' => $daysSinceLastAccrual,
+            'principal' => $outstandingPrincipal,
+        ];
+    }
+
+    public function addFee(int $amountCents): void
+    {
+        $this->ensureDisbursed();
+
+        if ($amountCents <= 0) {
+            throw new InvalidArgumentException('Fee amount must be positive');
+        }
+
+        $transferId = $this->nextTransferId();
+
+        $this->ledger->execute(
+            CreateTransfer::with(
+                id: $transferId,
+                debitAccountId: $this->feesId,
+                creditAccountId: $this->revenueId,
+                amount: $amountCents,
+                ledger: 1,
+                code: 30,
+            ),
+        );
+
+        $this->transactions[] = [
+            'type' => 'fee',
+            'date' => $this->clock->now(),
+            'amount' => $amountCents,
+        ];
+    }
+
+    public function repay(int $amountCents): void
+    {
+        $this->ensureDisbursed();
+
+        if ($amountCents <= 0) {
+            throw new InvalidArgumentException('Repayment amount must be positive');
+        }
+
+        // Step 1: Receive payment from customer cash into control account
+        $paymentTransferId = $this->nextTransferId();
+        $this->ledger->execute(
+            CreateTransfer::with(
+                id: $paymentTransferId,
+                debitAccountId: $this->customerCashId,
+                creditAccountId: $this->controlAccountId,
+                amount: $amountCents,
+                ledger: 1,
+                code: 40,
+            ),
+        );
+
+        // Step 2-5: Waterfall allocation (executed atomically in single batch)
+        $feesTransferId = $this->nextTransferId();
+        $interestTransferId = $this->nextTransferId();
+        $principalTransferId = $this->nextTransferId();
+        $overpaymentTransferId = $this->nextTransferId();
+
+        $this->ledger->execute(
+            // Step 2: Allocate to fees (priority 1)
+            CreateTransfer::with(
+                id: $feesTransferId,
+                debitAccountId: $this->controlAccountId,
+                creditAccountId: $this->feesId,
+                amount: 0,
+                ledger: 1,
+                code: 41,
+                flags: TransferFlags::BALANCING_DEBIT | TransferFlags::BALANCING_CREDIT,
+            ),
+            // Step 3: Allocate to interest (priority 2)
+            CreateTransfer::with(
+                id: $interestTransferId,
+                debitAccountId: $this->controlAccountId,
+                creditAccountId: $this->interestId,
+                amount: 0,
+                ledger: 1,
+                code: 42,
+                flags: TransferFlags::BALANCING_DEBIT | TransferFlags::BALANCING_CREDIT,
+            ),
+            // Step 4: Allocate to principal (priority 3)
+            CreateTransfer::with(
+                id: $principalTransferId,
+                debitAccountId: $this->controlAccountId,
+                creditAccountId: $this->principalId,
+                amount: 0,
+                ledger: 1,
+                code: 43,
+                flags: TransferFlags::BALANCING_DEBIT | TransferFlags::BALANCING_CREDIT,
+            ),
+            // Step 5: Allocate to overpayment (any remaining balance)
+            CreateTransfer::with(
+                id: $overpaymentTransferId,
+                debitAccountId: $this->controlAccountId,
+                creditAccountId: $this->overpaymentId,
+                amount: 0,
+                ledger: 1,
+                code: 44,
+                flags: TransferFlags::BALANCING_DEBIT,
+            ),
+        );
+
+        // Get actual amounts allocated
+        $feesTransfer = $this->transfers->ofId($feesTransferId)->one();
+        $interestTransfer = $this->transfers->ofId($interestTransferId)->one();
+        $principalTransfer = $this->transfers->ofId($principalTransferId)->one();
+        $overpaymentTransfer = $this->transfers->ofId($overpaymentTransferId)->one();
+
+        $this->transactions[] = [
+            'type' => 'repayment',
+            'date' => $this->clock->now(),
+            'amount' => $amountCents,
+            'fees' => $feesTransfer->amount->value,
+            'interest' => $interestTransfer->amount->value,
+            'principal' => $principalTransfer->amount->value,
+            'overpayment' => $overpaymentTransfer->amount->value,
+        ];
+    }
+
+
+    public function getStatus(): array
+    {
+        $principal = $this->accounts->ofId($this->principalId)->one();
+        $interest = $this->accounts->ofId($this->interestId)->one();
+        $fees = $this->accounts->ofId($this->feesId)->one();
+        $overpayment = $this->accounts->ofId($this->overpaymentId)->one();
+
+        return [
+            'disbursed' => $this->disbursed,
+            'current_date' => $this->clock->now(),
+            'principal' => [
+                'owed' => $principal->balance->debitsPosted->value - $principal->balance->creditsPosted->value,
+                'paid' => $principal->balance->creditsPosted->value,
+                'original' => $principal->balance->debitsPosted->value,
+            ],
+            'interest' => [
+                'owed' => $interest->balance->debitsPosted->value - $interest->balance->creditsPosted->value,
+                'paid' => $interest->balance->creditsPosted->value,
+                'accrued' => $interest->balance->debitsPosted->value,
+            ],
+            'fees' => [
+                'owed' => $fees->balance->debitsPosted->value - $fees->balance->creditsPosted->value,
+                'paid' => $fees->balance->creditsPosted->value,
+                'charged' => $fees->balance->debitsPosted->value,
+            ],
+            'overpayment' => [
+                'balance' => $overpayment->balance->creditsPosted->value,
+            ],
+        ];
+    }
+
+    public function getTransactions(): array
+    {
+        return $this->transactions;
+    }
+
+    public function isFullyPaid(): bool
+    {
+        if (!$this->disbursed) {
+            return false;
+        }
+
+        $principal = $this->accounts->ofId($this->principalId)->one();
+        $outstandingPrincipal = $principal->balance->debitsPosted->value - $principal->balance->creditsPosted->value;
+
+        return $outstandingPrincipal === 0;
+    }
+
+    private function ensureDisbursed(): void
+    {
+        if (!$this->disbursed) {
+            throw new RuntimeException('Loan must be disbursed first');
+        }
+    }
+
+    private function nextTransferId(): Identifier
+    {
+        $this->transactionCounter++;
+        $hex = str_pad(dechex($this->transactionCounter), 32, '0', STR_PAD_LEFT);
+        return Identifier::fromHex($hex);
+    }
+
+    private function calculateDaysSince(Instant $from, Instant $to): int
+    {
+        $secondsDiff = $to->seconds - $from->seconds;
+        return (int) floor($secondsDiff / 86400);
+    }
+}
+
+// ============================================================================
+// REPL Implementation
+// ============================================================================
+
+function formatMoney(int $pence): string
+{
+    return '£' . number_format($pence / 100, 2);
+}
+
+function formatDate(Instant $instant): string
+{
+    return date('Y-m-d H:i:s', $instant->seconds);
+}
+
+function printStatus(LoanSimulator $loan): void
+{
+    $status = $loan->getStatus();
+
+    echo "\n";
+    echo "=== Loan Status ===\n";
+    echo "Current Date: " . formatDate($status['current_date']) . "\n";
+    echo "\n";
+
+    if (!$status['disbursed']) {
+        echo "Status: NOT DISBURSED\n";
+        echo "\n";
+        return;
+    }
+
+    echo "Principal:\n";
+    echo "  Original:    " . formatMoney($status['principal']['original']) . "\n";
+    echo "  Paid:        " . formatMoney($status['principal']['paid']) . "\n";
+    echo "  Outstanding: " . formatMoney($status['principal']['owed']) . "\n";
+    echo "\n";
+
+    echo "Interest:\n";
+    echo "  Accrued:     " . formatMoney($status['interest']['accrued']) . "\n";
+    echo "  Paid:        " . formatMoney($status['interest']['paid']) . "\n";
+    echo "  Outstanding: " . formatMoney($status['interest']['owed']) . "\n";
+    echo "\n";
+
+    echo "Fees:\n";
+    echo "  Charged:     " . formatMoney($status['fees']['charged']) . "\n";
+    echo "  Paid:        " . formatMoney($status['fees']['paid']) . "\n";
+    echo "  Outstanding: " . formatMoney($status['fees']['owed']) . "\n";
+    echo "\n";
+
+    if ($status['overpayment']['balance'] > 0) {
+        echo "Overpayment: " . formatMoney($status['overpayment']['balance']) . "\n";
+        echo "\n";
+    }
+
+    $totalOwed = $status['principal']['owed'] + $status['interest']['owed'] + $status['fees']['owed'];
+    echo "Total Outstanding: " . formatMoney($totalOwed) . "\n";
+    echo "\n";
+}
+
+function printTransactions(LoanSimulator $loan): void
+{
+    $transactions = $loan->getTransactions();
+
+    if (empty($transactions)) {
+        echo "No transactions yet.\n";
+        return;
+    }
+
+    echo "\n";
+    echo "=== Transaction History ===\n";
+    echo "\n";
+
+    foreach ($transactions as $tx) {
+        $date = formatDate($tx['date']);
+
+        switch ($tx['type']) {
+            case 'interest_accrual':
+                echo "[{$date}] Interest Accrued: " . formatMoney($tx['amount']);
+                echo " ({$tx['days']} days on " . formatMoney($tx['principal']) . ")\n";
+                break;
+
+            case 'fee':
+                echo "[{$date}] Fee Charged: " . formatMoney($tx['amount']) . "\n";
+                break;
+
+            case 'repayment':
+                echo "[{$date}] Repayment: " . formatMoney($tx['amount']) . "\n";
+                if ($tx['fees'] > 0) {
+                    echo "  → Fees:      " . formatMoney($tx['fees']) . "\n";
+                }
+                if ($tx['interest'] > 0) {
+                    echo "  → Interest:  " . formatMoney($tx['interest']) . "\n";
+                }
+                if ($tx['principal'] > 0) {
+                    echo "  → Principal: " . formatMoney($tx['principal']) . "\n";
+                }
+                if ($tx['overpayment'] > 0) {
+                    echo "  → Overpayment: " . formatMoney($tx['overpayment']) . "\n";
+                }
+                break;
+        }
+    }
+
+    echo "\n";
+}
+
+function printHelp(): void
+{
+    echo "\n";
+    echo "Available commands:\n";
+    echo "  disburse              - Disburse the loan\n";
+    echo "  days <n>              - Advance the clock by <n> days\n";
+    echo "  cycle [n]             - Advance to 1st of next month and accrue interest (n times, default: 1)\n";
+    echo "  accrue                - Accrue interest based on days since last accrual\n";
+    echo "  fee <amount>          - Add a fee (amount in pounds, e.g., 'fee 25.50')\n";
+    echo "  repay <amount>        - Make a repayment (amount in pounds)\n";
+    echo "  status                - Show current loan status and balances\n";
+    echo "  transactions          - Show transaction history\n";
+    echo "  help                  - Show this help message\n";
+    echo "  exit                  - Exit the simulator\n";
+    echo "\n";
+}
+
+function parseMoney(string $amount): int
+{
+    $cleaned = str_replace(['$', ','], '', trim($amount));
+    $float = (float) $cleaned;
+    return (int) round($float * 100);
+}
+
+// ============================================================================
+// Main REPL
+// ============================================================================
+
+echo "\n";
+echo "╔════════════════════════════════════════════════════════════════╗\n";
+echo "║           Loan Simulator - Interactive REPL                   ║\n";
+echo "╚════════════════════════════════════════════════════════════════╝\n";
+echo "\n";
+
+// Setup loan
+echo "Let's set up your loan.\n";
+echo "\n";
+
+$apr = null;
+while ($apr === null) {
+    echo "Enter APR (as decimal, e.g., 0.15 for 15%): ";
+    $input = trim(fgets(STDIN));
+    $apr = filter_var($input, FILTER_VALIDATE_FLOAT);
+    if ($apr === false || $apr < 0 || $apr > 10) {
+        echo "Invalid APR. Please enter a value between 0 and 10.\n";
+        $apr = null;
+    }
+}
+
+$amount = null;
+while ($amount === null) {
+    echo "Enter loan amount (in pounds, e.g., 1000): ";
+    $input = trim(fgets(STDIN));
+    try {
+        $amount = parseMoney($input);
+        if ($amount <= 0) {
+            echo "Amount must be positive.\n";
+            $amount = null;
+        }
+    } catch (Exception $e) {
+        echo "Invalid amount.\n";
+    }
+}
+
+echo "\n";
+echo "Loan created:\n";
+echo "  Amount: " . formatMoney($amount) . "\n";
+echo "  APR:    " . ($apr * 100) . "%\n";
+echo "  Daily Rate: " . number_format(($apr / 365) * 100, 6) . "%\n";
+echo "\n";
+echo "Type 'help' for available commands.\n";
+
+$loan = LoanSimulator::create($apr, $amount);
+
+// Main REPL loop
+$running = true;
+while ($running) {
+    echo "loan> ";
+    $input = trim(fgets(STDIN));
+
+    if (empty($input)) {
+        continue;
+    }
+
+    $parts = preg_split('/\s+/', $input, 2);
+    $command = strtolower($parts[0]);
+    $args = $parts[1] ?? '';
+
+    try {
+        switch ($command) {
+            case 'help':
+                printHelp();
+                break;
+
+            case 'disburse':
+                $loan->disburse();
+                echo "✓ Loan disbursed: " . formatMoney($amount) . "\n";
+                break;
+
+            case 'days':
+                $days = (int) $args;
+                if ($days <= 0) {
+                    echo "Error: Days must be a positive number.\n";
+                    break;
+                }
+                $loan->advanceDays($days);
+                echo "✓ Advanced {$days} day(s) forward.\n";
+                $status = $loan->getStatus();
+                echo "  Current date: " . formatDate($status['current_date']) . "\n";
+                break;
+
+            case 'cycle':
+                $cycles = !empty($args) ? (int) $args : 1;
+                if ($cycles < 1) {
+                    echo "Error: Cycle count must be at least 1.\n";
+                    break;
+                }
+
+                $results = $loan->cycle($cycles);
+
+                if ($cycles === 1) {
+                    $result = $results[0];
+                    echo "✓ Advanced {$result['days']} day(s) to 1st of next month.\n";
+                    echo "  Current date: " . formatDate($result['date']) . "\n";
+                    if ($result['interest'] > 0) {
+                        echo "  Interest accrued: " . formatMoney($result['interest']) . "\n";
+                    }
+                } else {
+                    $totalDays = array_sum(array_column($results, 'days'));
+                    $totalInterest = array_sum(array_column($results, 'interest'));
+                    $lastResult = end($results);
+
+                    echo "✓ Completed {$cycles} billing cycle(s).\n";
+                    echo "  Total days advanced: {$totalDays}\n";
+                    echo "  Current date: " . formatDate($lastResult['date']) . "\n";
+                    if ($totalInterest > 0) {
+                        echo "  Total interest accrued: " . formatMoney($totalInterest) . "\n";
+                    }
+
+                    echo "\n  Cycle breakdown:\n";
+                    foreach ($results as $i => $result) {
+                        $cycleNum = $i + 1;
+                        echo "    Cycle {$cycleNum}: {$result['days']} days, " . formatMoney($result['interest']) . " interest\n";
+                    }
+                }
+                break;
+
+            case 'accrue':
+                $statusBefore = $loan->getStatus();
+                $interestBefore = $statusBefore['interest']['accrued'];
+
+                $loan->accrueInterest();
+
+                $statusAfter = $loan->getStatus();
+                $interestAfter = $statusAfter['interest']['accrued'];
+                $accrued = $interestAfter - $interestBefore;
+
+                if ($accrued > 0) {
+                    echo "✓ Interest accrued: " . formatMoney($accrued) . "\n";
+                } else {
+                    echo "✓ No interest accrued (0 days passed or no outstanding principal).\n";
+                }
+                break;
+
+            case 'fee':
+                $feeAmount = parseMoney($args);
+                if ($feeAmount <= 0) {
+                    echo "Error: Fee amount must be positive.\n";
+                    break;
+                }
+                $loan->addFee($feeAmount);
+                echo "✓ Fee added: " . formatMoney($feeAmount) . "\n";
+                break;
+
+            case 'repay':
+                $repayAmount = parseMoney($args);
+                if ($repayAmount <= 0) {
+                    echo "Error: Repayment amount must be positive.\n";
+                    break;
+                }
+                $loan->repay($repayAmount);
+                echo "✓ Repayment processed: " . formatMoney($repayAmount) . "\n";
+
+                // Show breakdown
+                $transactions = $loan->getTransactions();
+                $lastTx = end($transactions);
+                if ($lastTx['fees'] > 0) {
+                    echo "  → Fees:      " . formatMoney($lastTx['fees']) . "\n";
+                }
+                if ($lastTx['interest'] > 0) {
+                    echo "  → Interest:  " . formatMoney($lastTx['interest']) . "\n";
+                }
+                if ($lastTx['principal'] > 0) {
+                    echo "  → Principal: " . formatMoney($lastTx['principal']) . "\n";
+                }
+                if ($lastTx['overpayment'] > 0) {
+                    echo "  → Overpayment: " . formatMoney($lastTx['overpayment']) . "\n";
+                }
+
+                if ($loan->isFullyPaid()) {
+                    echo "\n";
+                    echo "🎉 Congratulations! The loan is fully paid off!\n";
+                    echo "\n";
+
+                    $status = $loan->getStatus();
+                    $totalRevenue = $status['interest']['paid'] + $status['fees']['paid'];
+                    $totalPaid = $status['principal']['paid'] + $totalRevenue + $status['overpayment']['balance'];
+                    $extraPaid = $totalRevenue;
+
+                    echo "Loan Summary:\n";
+                    echo "  Principal borrowed:      " . formatMoney($status['principal']['original']) . "\n";
+                    echo "  Total revenue collected: " . formatMoney($totalRevenue) . "\n";
+                    echo "    (Interest: " . formatMoney($status['interest']['paid']) . ", Fees: " . formatMoney($status['fees']['paid']) . ")\n";
+                    echo "  Extra paid by customer:  " . formatMoney($extraPaid) . "\n";
+                    echo "  Total paid by customer:  " . formatMoney($totalPaid) . "\n";
+                    if ($status['overpayment']['balance'] > 0) {
+                        echo "  Overpayment balance:     " . formatMoney($status['overpayment']['balance']) . "\n";
+                    }
+                    echo "\n";
+
+                    printStatus($loan);
+                    printTransactions($loan);
+                    $running = false;
+                }
+                break;
+
+            case 'status':
+                printStatus($loan);
+                break;
+
+            case 'transactions':
+                printTransactions($loan);
+                break;
+
+            case 'exit':
+            case 'quit':
+                echo "Exiting loan simulator.\n";
+                $running = false;
+                break;
+
+            default:
+                echo "Unknown command: {$command}\n";
+                echo "Type 'help' for available commands.\n";
+                break;
+        }
+    } catch (RuntimeException $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+    }
+}
+
+echo "\n";
+echo "Goodbye!\n";
+echo "\n";

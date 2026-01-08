@@ -51,4 +51,22 @@ $ledger->execute(
 );
 ```
 
+## Try the Loan Simulator
+
+Want to see the ledger in action? Try our interactive loan simulator that demonstrates interest accrual, fees, and waterfall repayments:
+
+```bash
+docker compose run --rm ledgering php examples/loan-repl
+```
+
+The simulator lets you:
+- Create a loan with custom APR and principal amount
+- Advance time and accrue interest
+- Add fees and make repayments
+- See how waterfall allocation works (Fees → Interest → Principal)
+
+See the [examples/README.md](examples/README.md) for detailed usage instructions.
+
+## Documentation
+
 For more information read the [documentation](.dev/docs/README.md).
