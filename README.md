@@ -5,6 +5,17 @@ A double-entry bookkeeping ledgering library for PHP.
 
 ## Installation
 
+Add the Castor Packages to your `composer.json`:
+
+```json
+{
+  "repositories": [{
+    "type": "composer",
+    "url": "https://castor-labs.github.io/php-packages"
+  }]
+}
+```
+
 ```shell
 composer require castor/ledgering
 ```
