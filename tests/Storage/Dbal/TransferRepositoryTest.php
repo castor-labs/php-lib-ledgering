@@ -32,30 +32,25 @@ use PHPUnit\Framework\TestCase;
 #[Group('integration')]
 final class TransferRepositoryTest extends TestCase
 {
-	#[\Override]
-	protected function setUp(): void
-	{
-		$connection = Database::connection();
-		$connection->executeStatement('TRUNCATE TABLE ledgering_transfers RESTART IDENTITY CASCADE');
-	}
-
 	#[Test]
 	public function it_writes_and_reads_transfer(): void
 	{
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
+		$groupId = Identifier::random();
+
 		$transfer = new Transfer(
-			id: Identifier::fromHex('0123456789abcdef0123456789abcdef'),
-			debitAccountId: Identifier::fromHex('11111111111111111111111111111111'),
-			creditAccountId: Identifier::fromHex('22222222222222222222222222222222'),
+			id: Identifier::random(),
+			debitAccountId: Identifier::random(),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(1000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::none(),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1234567890, 123456789),
@@ -63,9 +58,8 @@ final class TransferRepositoryTest extends TestCase
 
 		$repository->write($transfer);
 
-		$retrieved = $repository->ofId($transfer->id)->first();
+		$retrieved = $repository->ofId($transfer->id)->one();
 
-		self::assertNotNull($retrieved);
 		self::assertTrue($retrieved->id->equals($transfer->id));
 		self::assertTrue($retrieved->debitAccountId->equals($transfer->debitAccountId));
 		self::assertTrue($retrieved->creditAccountId->equals($transfer->creditAccountId));
@@ -82,12 +76,12 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$externalId = Identifier::fromHex('ffffffffffffffffffffffffffffffff');
+		$externalId = Identifier::random();
 
 		$transfer = new Transfer(
-			id: Identifier::fromHex('0123456789abcdef0123456789abcdef'),
-			debitAccountId: Identifier::fromHex('11111111111111111111111111111111'),
-			creditAccountId: Identifier::fromHex('22222222222222222222222222222222'),
+			id: Identifier::random(),
+			debitAccountId: Identifier::random(),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(1000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
@@ -102,9 +96,8 @@ final class TransferRepositoryTest extends TestCase
 
 		$repository->write($transfer);
 
-		$retrieved = $repository->ofExternalIdPrimary($externalId)->first();
+		$retrieved = $repository->ofExternalIdPrimary($externalId)->one();
 
-		self::assertNotNull($retrieved);
 		self::assertTrue($retrieved->externalIdPrimary->equals($externalId));
 	}
 
@@ -114,19 +107,20 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$externalId = Identifier::fromHex('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee');
+		$groupId = Identifier::random();
+		$externalId = Identifier::random();
 
 		$transfer = new Transfer(
-			id: Identifier::fromHex('0123456789abcdef0123456789abcdef'),
-			debitAccountId: Identifier::fromHex('11111111111111111111111111111111'),
-			creditAccountId: Identifier::fromHex('22222222222222222222222222222222'),
+			id: Identifier::random(),
+			debitAccountId: Identifier::random(),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(1000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::none(),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: $externalId,
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
@@ -134,9 +128,8 @@ final class TransferRepositoryTest extends TestCase
 
 		$repository->write($transfer);
 
-		$retrieved = $repository->ofExternalIdSecondary($externalId)->first();
+		$retrieved = $repository->ofExternalIdSecondary($externalId)->one();
 
-		self::assertNotNull($retrieved);
 		self::assertTrue($retrieved->externalIdSecondary->equals($externalId));
 	}
 
@@ -146,11 +139,12 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$debitAccountId = Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-		$creditAccountId = Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb');
+		$groupId = Identifier::random();
+		$debitAccountId = Identifier::random();
+		$creditAccountId = Identifier::random();
 
 		$transfer1 = new Transfer(
-			id: Identifier::fromHex('11111111111111111111111111111111'),
+			id: Identifier::random(),
 			debitAccountId: $debitAccountId,
 			creditAccountId: $creditAccountId,
 			amount: Amount::of(1000),
@@ -159,23 +153,23 @@ final class TransferRepositoryTest extends TestCase
 			code: Code::of(100),
 			flags: TransferFlags::none(),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
 		);
 
 		$transfer2 = new Transfer(
-			id: Identifier::fromHex('22222222222222222222222222222222'),
+			id: Identifier::random(),
 			debitAccountId: $debitAccountId,
-			creditAccountId: Identifier::fromHex('cccccccccccccccccccccccccccccccc'),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(2000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::none(),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(2000),
@@ -183,8 +177,8 @@ final class TransferRepositoryTest extends TestCase
 
 		// Transfer with different debit account
 		$transfer3 = new Transfer(
-			id: Identifier::fromHex('33333333333333333333333333333333'),
-			debitAccountId: Identifier::fromHex('dddddddddddddddddddddddddddddddd'),
+			id: Identifier::random(),
+			debitAccountId: Identifier::random(),
 			creditAccountId: $creditAccountId,
 			amount: Amount::of(3000),
 			pendingId: Identifier::zero(),
@@ -192,7 +186,7 @@ final class TransferRepositoryTest extends TestCase
 			code: Code::of(100),
 			flags: TransferFlags::none(),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(3000),
@@ -202,7 +196,7 @@ final class TransferRepositoryTest extends TestCase
 		$repository->write($transfer2);
 		$repository->write($transfer3);
 
-		$retrieved = $repository->ofDebitAccount($debitAccountId)->toList();
+		$retrieved = $repository->ofExternalIdPrimary($groupId)->ofDebitAccount($debitAccountId)->toList();
 
 		self::assertCount(2, $retrieved);
 		self::assertTrue($retrieved[0]->debitAccountId->equals($debitAccountId));
@@ -215,11 +209,12 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$debitAccountId = Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-		$creditAccountId = Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb');
+		$groupId = Identifier::random();
+		$debitAccountId = Identifier::random();
+		$creditAccountId = Identifier::random();
 
 		$transfer1 = new Transfer(
-			id: Identifier::fromHex('11111111111111111111111111111111'),
+			id: Identifier::random(),
 			debitAccountId: $debitAccountId,
 			creditAccountId: $creditAccountId,
 			amount: Amount::of(1000),
@@ -228,15 +223,15 @@ final class TransferRepositoryTest extends TestCase
 			code: Code::of(100),
 			flags: TransferFlags::none(),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
 		);
 
 		$transfer2 = new Transfer(
-			id: Identifier::fromHex('22222222222222222222222222222222'),
-			debitAccountId: Identifier::fromHex('cccccccccccccccccccccccccccccccc'),
+			id: Identifier::random(),
+			debitAccountId: Identifier::random(),
 			creditAccountId: $creditAccountId,
 			amount: Amount::of(2000),
 			pendingId: Identifier::zero(),
@@ -244,7 +239,7 @@ final class TransferRepositoryTest extends TestCase
 			code: Code::of(100),
 			flags: TransferFlags::none(),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(2000),
@@ -252,16 +247,16 @@ final class TransferRepositoryTest extends TestCase
 
 		// Transfer with different credit account
 		$transfer3 = new Transfer(
-			id: Identifier::fromHex('33333333333333333333333333333333'),
+			id: Identifier::random(),
 			debitAccountId: $debitAccountId,
-			creditAccountId: Identifier::fromHex('dddddddddddddddddddddddddddddddd'),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(3000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::none(),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(3000),
@@ -271,7 +266,7 @@ final class TransferRepositoryTest extends TestCase
 		$repository->write($transfer2);
 		$repository->write($transfer3);
 
-		$retrieved = $repository->ofCreditAccount($creditAccountId)->toList();
+		$retrieved = $repository->ofExternalIdPrimary($groupId)->ofCreditAccount($creditAccountId)->toList();
 
 		self::assertCount(2, $retrieved);
 		self::assertTrue($retrieved[0]->creditAccountId->equals($creditAccountId));
@@ -279,12 +274,14 @@ final class TransferRepositoryTest extends TestCase
 	}
 
 	#[Test]
-	public function it_returns_empty_list_when_no_transfers(): void
+	public function it_returns_empty_list_when_no_matching_transfers(): void
 	{
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$transfers = $repository->toList();
+		$groupId = Identifier::random();
+
+		$transfers = $repository->ofExternalIdPrimary($groupId)->toList();
 
 		self::assertSame([], $transfers);
 	}
@@ -295,13 +292,15 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$transfer1 = $this->createTransfer(Identifier::fromHex('11111111111111111111111111111111'));
-		$transfer2 = $this->createTransfer(Identifier::fromHex('22222222222222222222222222222222'));
+		$groupId = Identifier::random();
+
+		$transfer1 = $this->createTransfer(Identifier::random(), groupId: $groupId);
+		$transfer2 = $this->createTransfer(Identifier::random(), groupId: $groupId);
 
 		$repository->write($transfer1);
 		$repository->write($transfer2);
 
-		$transfers = $repository->toList();
+		$transfers = $repository->ofExternalIdPrimary($groupId)->toList();
 
 		self::assertCount(2, $transfers);
 		self::assertTrue($transfers[0]->id->equals($transfer1->id));
@@ -314,13 +313,15 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$transfer1 = $this->createTransfer(Identifier::fromHex('11111111111111111111111111111111'));
-		$transfer2 = $this->createTransfer(Identifier::fromHex('22222222222222222222222222222222'));
+		$groupId = Identifier::random();
+
+		$transfer1 = $this->createTransfer(Identifier::random(), groupId: $groupId);
+		$transfer2 = $this->createTransfer(Identifier::random(), groupId: $groupId);
 
 		$repository->write($transfer1);
 		$repository->write($transfer2);
 
-		$iterator = $repository->toIterator();
+		$iterator = $repository->ofExternalIdPrimary($groupId)->toIterator();
 
 		self::assertInstanceOf(\Iterator::class, $iterator);
 		self::assertCount(2, \iterator_to_array($iterator));
@@ -332,13 +333,15 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$transfer1 = $this->createTransfer(Identifier::fromHex('11111111111111111111111111111111'));
-		$transfer2 = $this->createTransfer(Identifier::fromHex('22222222222222222222222222222222'));
+		$groupId = Identifier::random();
+
+		$transfer1 = $this->createTransfer(Identifier::random(), groupId: $groupId);
+		$transfer2 = $this->createTransfer(Identifier::random(), groupId: $groupId);
 
 		$repository->write($transfer1);
 		$repository->write($transfer2);
 
-		$map = $repository->toMap(static fn(Transfer $t) => $t->id->toHex());
+		$map = $repository->ofExternalIdPrimary($groupId)->toMap(static fn(Transfer $t) => $t->id->toHex());
 
 		self::assertCount(2, $map);
 		self::assertArrayHasKey($transfer1->id->toHex(), $map);
@@ -352,17 +355,22 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
+		$groupId = Identifier::random();
+
 		$transfer1 = $this->createTransfer(
-			Identifier::fromHex('11111111111111111111111111111111'),
+			Identifier::random(),
 			ledger: Code::of(1),
+			groupId: $groupId,
 		);
 		$transfer2 = $this->createTransfer(
-			Identifier::fromHex('22222222222222222222222222222222'),
+			Identifier::random(),
 			ledger: Code::of(1),
+			groupId: $groupId,
 		);
 		$transfer3 = $this->createTransfer(
-			Identifier::fromHex('33333333333333333333333333333333'),
+			Identifier::random(),
 			ledger: Code::of(2),
+			groupId: $groupId,
 		);
 
 		$repository->write($transfer1);
@@ -370,7 +378,7 @@ final class TransferRepositoryTest extends TestCase
 		$repository->write($transfer3);
 
 		/** @var array<string, array<Transfer>> $map */
-		$map = $repository->toListMap(static fn(Transfer $t) => (string) $t->ledger->value);
+		$map = $repository->ofExternalIdPrimary($groupId)->toListMap(static fn(Transfer $t) => (string) $t->ledger->value);
 
 		self::assertCount(2, $map);
 		self::assertArrayHasKey('1', $map);
@@ -387,13 +395,16 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		self::assertSame(0, $repository->count());
+		$groupId = Identifier::random();
+		$scoped = $repository->ofExternalIdPrimary($groupId);
 
-		$repository->write($this->createTransfer(Identifier::fromHex('11111111111111111111111111111111')));
-		self::assertSame(1, $repository->count());
+		self::assertSame(0, $scoped->count());
 
-		$repository->write($this->createTransfer(Identifier::fromHex('22222222222222222222222222222222')));
-		self::assertSame(2, $repository->count());
+		$repository->write($this->createTransfer(Identifier::random(), groupId: $groupId));
+		self::assertSame(1, $scoped->count());
+
+		$repository->write($this->createTransfer(Identifier::random(), groupId: $groupId));
+		self::assertSame(2, $scoped->count());
 	}
 
 	#[Test]
@@ -402,25 +413,29 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$transfer1 = $this->createTransfer(Identifier::fromHex('11111111111111111111111111111111'));
-		$transfer2 = $this->createTransfer(Identifier::fromHex('22222222222222222222222222222222'));
+		$groupId = Identifier::random();
+
+		$transfer1 = $this->createTransfer(Identifier::random(), groupId: $groupId);
+		$transfer2 = $this->createTransfer(Identifier::random(), groupId: $groupId);
 
 		$repository->write($transfer1);
 		$repository->write($transfer2);
 
-		$first = $repository->first();
+		$first = $repository->ofExternalIdPrimary($groupId)->first();
 
 		self::assertNotNull($first);
 		self::assertTrue($first->id->equals($transfer1->id));
 	}
 
 	#[Test]
-	public function it_returns_null_when_first_on_empty_repository(): void
+	public function it_returns_null_when_first_on_empty_result(): void
 	{
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$first = $repository->first();
+		$groupId = Identifier::random();
+
+		$first = $repository->ofExternalIdPrimary($groupId)->first();
 
 		self::assertNull($first);
 	}
@@ -431,24 +446,28 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$transfer = $this->createTransfer(Identifier::fromHex('11111111111111111111111111111111'));
+		$groupId = Identifier::random();
+
+		$transfer = $this->createTransfer(Identifier::random(), groupId: $groupId);
 		$repository->write($transfer);
 
-		$one = $repository->one();
+		$one = $repository->ofExternalIdPrimary($groupId)->one();
 
 		self::assertTrue($one->id->equals($transfer->id));
 	}
 
 	#[Test]
-	public function it_throws_when_one_on_empty_repository(): void
+	public function it_throws_when_one_on_empty_result(): void
 	{
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
+		$groupId = Identifier::random();
+
 		$this->expectException(InvalidResult::class);
 		$this->expectExceptionMessage('Reader is empty');
 
-		$repository->one();
+		$repository->ofExternalIdPrimary($groupId)->one();
 	}
 
 	#[Test]
@@ -457,13 +476,15 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$repository->write($this->createTransfer(Identifier::fromHex('11111111111111111111111111111111')));
-		$repository->write($this->createTransfer(Identifier::fromHex('22222222222222222222222222222222')));
+		$groupId = Identifier::random();
+
+		$repository->write($this->createTransfer(Identifier::random(), groupId: $groupId));
+		$repository->write($this->createTransfer(Identifier::random(), groupId: $groupId));
 
 		$this->expectException(InvalidResult::class);
 		$this->expectExceptionMessage('Expected exactly one item, found 2');
 
-		$repository->one();
+		$repository->ofExternalIdPrimary($groupId)->one();
 	}
 
 	#[Test]
@@ -472,10 +493,12 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$repository->write($this->createTransfer(Identifier::fromHex('11111111111111111111111111111111')));
-		$repository->write($this->createTransfer(Identifier::fromHex('22222222222222222222222222222222')));
+		$groupId = Identifier::random();
 
-		$transfers = $repository->pick(2);
+		$repository->write($this->createTransfer(Identifier::random(), groupId: $groupId));
+		$repository->write($this->createTransfer(Identifier::random(), groupId: $groupId));
+
+		$transfers = $repository->ofExternalIdPrimary($groupId)->pick(2);
 
 		self::assertCount(2, $transfers);
 	}
@@ -486,55 +509,61 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$repository->write($this->createTransfer(Identifier::fromHex('11111111111111111111111111111111')));
+		$groupId = Identifier::random();
+
+		$repository->write($this->createTransfer(Identifier::random(), groupId: $groupId));
 
 		$this->expectException(InvalidResult::class);
 		$this->expectExceptionMessage('Expected exactly 2 items, found 1');
 
-		$repository->pick(2);
+		$repository->ofExternalIdPrimary($groupId)->pick(2);
 	}
 
 	#[Test]
-	public function it_slices_transfers_with_offset(): void
+	public function it_slices_transfers_with_limit(): void
 	{
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$transfer1 = $this->createTransfer(Identifier::fromHex('11111111111111111111111111111111'));
-		$transfer2 = $this->createTransfer(Identifier::fromHex('22222222222222222222222222222222'));
-		$transfer3 = $this->createTransfer(Identifier::fromHex('33333333333333333333333333333333'));
+		$groupId = Identifier::random();
+
+		$transfer1 = $this->createTransfer(Identifier::random(), groupId: $groupId);
+		$transfer2 = $this->createTransfer(Identifier::random(), groupId: $groupId);
+		$transfer3 = $this->createTransfer(Identifier::random(), groupId: $groupId);
 
 		$repository->write($transfer1);
 		$repository->write($transfer2);
 		$repository->write($transfer3);
 
 		/** @var array<Transfer> $sliced */
-		$sliced = $repository->slice(1)->toList();
+		$sliced = $repository->ofExternalIdPrimary($groupId)->slice(0, 2)->toList();
 
 		self::assertCount(2, $sliced);
-		self::assertTrue($sliced[0]->id->equals($transfer2->id));
-		self::assertTrue($sliced[1]->id->equals($transfer3->id));
+		self::assertTrue($sliced[0]->id->equals($transfer1->id));
+		self::assertTrue($sliced[1]->id->equals($transfer2->id));
 	}
 
 	#[Test]
-	public function it_slices_transfers_with_offset_and_limit(): void
+	public function it_slices_transfers_with_limit_of_one(): void
 	{
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$transfer1 = $this->createTransfer(Identifier::fromHex('11111111111111111111111111111111'));
-		$transfer2 = $this->createTransfer(Identifier::fromHex('22222222222222222222222222222222'));
-		$transfer3 = $this->createTransfer(Identifier::fromHex('33333333333333333333333333333333'));
+		$groupId = Identifier::random();
+
+		$transfer1 = $this->createTransfer(Identifier::random(), groupId: $groupId);
+		$transfer2 = $this->createTransfer(Identifier::random(), groupId: $groupId);
+		$transfer3 = $this->createTransfer(Identifier::random(), groupId: $groupId);
 
 		$repository->write($transfer1);
 		$repository->write($transfer2);
 		$repository->write($transfer3);
 
 		/** @var array<Transfer> $sliced */
-		$sliced = $repository->slice(1, 1)->toList();
+		$sliced = $repository->ofExternalIdPrimary($groupId)->slice(0, 1)->toList();
 
 		self::assertCount(1, $sliced);
-		self::assertTrue($sliced[0]->id->equals($transfer2->id));
+		self::assertTrue($sliced[0]->id->equals($transfer1->id));
 	}
 
 	#[Test]
@@ -543,20 +572,21 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$pendingId = Identifier::fromHex('11111111111111111111111111111111');
+		$groupId = Identifier::random();
+		$pendingId = Identifier::random();
 
 		// Create a pending transfer with 60 second timeout at t=1000
 		$pending = new Transfer(
 			id: $pendingId,
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			debitAccountId: Identifier::random(),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(1000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::PENDING),
 			timeout: Duration::ofSeconds(60),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
@@ -565,7 +595,7 @@ final class TransferRepositoryTest extends TestCase
 		$repository->write($pending);
 
 		// Check at t=1061 (1 second after expiration)
-		$expired = $repository->expired(Instant::of(1061))->toList();
+		$expired = $repository->ofExternalIdPrimary($groupId)->expired(Instant::of(1061))->toList();
 
 		self::assertCount(1, $expired);
 		self::assertTrue($expired[0]->id->equals($pendingId));
@@ -577,18 +607,20 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
+		$groupId = Identifier::random();
+
 		// Create a pending transfer with 60 second timeout at t=1000
 		$pending = new Transfer(
-			id: Identifier::fromHex('11111111111111111111111111111111'),
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			id: Identifier::random(),
+			debitAccountId: Identifier::random(),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(1000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::PENDING),
 			timeout: Duration::ofSeconds(60),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
@@ -597,7 +629,7 @@ final class TransferRepositoryTest extends TestCase
 		$repository->write($pending);
 
 		// Check at t=1059 (still within timeout)
-		$expired = $repository->expired(Instant::of(1059))->toList();
+		$expired = $repository->ofExternalIdPrimary($groupId)->expired(Instant::of(1059))->toList();
 
 		self::assertCount(0, $expired);
 	}
@@ -608,18 +640,20 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
+		$groupId = Identifier::random();
+
 		// Create a pending transfer with zero timeout
 		$pending = new Transfer(
-			id: Identifier::fromHex('11111111111111111111111111111111'),
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			id: Identifier::random(),
+			debitAccountId: Identifier::random(),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(1000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::PENDING),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
@@ -628,7 +662,7 @@ final class TransferRepositoryTest extends TestCase
 		$repository->write($pending);
 
 		// Check at a much later time
-		$expired = $repository->expired(Instant::of(999999))->toList();
+		$expired = $repository->ofExternalIdPrimary($groupId)->expired(Instant::of(999999))->toList();
 
 		self::assertCount(0, $expired);
 	}
@@ -639,18 +673,20 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
+		$groupId = Identifier::random();
+
 		// Create a regular (non-pending) transfer with timeout
 		$transfer = new Transfer(
-			id: Identifier::fromHex('11111111111111111111111111111111'),
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			id: Identifier::random(),
+			debitAccountId: Identifier::random(),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(1000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::none(), // Not pending
 			timeout: Duration::ofSeconds(60),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
@@ -659,7 +695,7 @@ final class TransferRepositoryTest extends TestCase
 		$repository->write($transfer);
 
 		// Check after timeout
-		$expired = $repository->expired(Instant::of(1061))->toList();
+		$expired = $repository->ofExternalIdPrimary($groupId)->expired(Instant::of(1061))->toList();
 
 		self::assertCount(0, $expired);
 	}
@@ -670,20 +706,21 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$pendingId = Identifier::fromHex('11111111111111111111111111111111');
+		$groupId = Identifier::random();
+		$pendingId = Identifier::random();
 
 		// Create a pending transfer with timeout
 		$pending = new Transfer(
 			id: $pendingId,
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			debitAccountId: Identifier::random(),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(1000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::PENDING),
 			timeout: Duration::ofSeconds(60),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
@@ -693,16 +730,16 @@ final class TransferRepositoryTest extends TestCase
 
 		// Create a POST_PENDING transfer that references the pending transfer
 		$post = new Transfer(
-			id: Identifier::fromHex('22222222222222222222222222222222'),
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			id: Identifier::random(),
+			debitAccountId: $pending->debitAccountId,
+			creditAccountId: $pending->creditAccountId,
 			amount: Amount::of(1000),
 			pendingId: $pendingId, // References the pending transfer
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::POST_PENDING),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1030),
@@ -711,7 +748,7 @@ final class TransferRepositoryTest extends TestCase
 		$repository->write($post);
 
 		// Check after timeout - should not return the posted pending transfer
-		$expired = $repository->expired(Instant::of(1061))->toList();
+		$expired = $repository->ofExternalIdPrimary($groupId)->expired(Instant::of(1061))->toList();
 
 		self::assertCount(0, $expired);
 	}
@@ -722,20 +759,21 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$pendingId = Identifier::fromHex('11111111111111111111111111111111');
+		$groupId = Identifier::random();
+		$pendingId = Identifier::random();
 
 		// Create a pending transfer with timeout
 		$pending = new Transfer(
 			id: $pendingId,
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			debitAccountId: Identifier::random(),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(1000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::PENDING),
 			timeout: Duration::ofSeconds(60),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
@@ -745,16 +783,16 @@ final class TransferRepositoryTest extends TestCase
 
 		// Create a VOID_PENDING transfer that references the pending transfer
 		$void = new Transfer(
-			id: Identifier::fromHex('22222222222222222222222222222222'),
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			id: Identifier::random(),
+			debitAccountId: $pending->debitAccountId,
+			creditAccountId: $pending->creditAccountId,
 			amount: Amount::of(0),
 			pendingId: $pendingId, // References the pending transfer
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::VOID_PENDING),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1030),
@@ -763,7 +801,7 @@ final class TransferRepositoryTest extends TestCase
 		$repository->write($void);
 
 		// Check after timeout - should not return the voided pending transfer
-		$expired = $repository->expired(Instant::of(1061))->toList();
+		$expired = $repository->ofExternalIdPrimary($groupId)->expired(Instant::of(1061))->toList();
 
 		self::assertCount(0, $expired);
 	}
@@ -774,23 +812,27 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
-		$pending1Id = Identifier::fromHex('11111111111111111111111111111111');
-		$pending2Id = Identifier::fromHex('22222222222222222222222222222222');
-		$pending3Id = Identifier::fromHex('33333333333333333333333333333333');
-		$pending4Id = Identifier::fromHex('44444444444444444444444444444444');
+		$groupId = Identifier::random();
+		$pending1Id = Identifier::random();
+		$pending2Id = Identifier::random();
+		$pending3Id = Identifier::random();
+		$pending4Id = Identifier::random();
+
+		$debitAccountId = Identifier::random();
+		$creditAccountId = Identifier::random();
 
 		// Pending transfer 1: Expired (timeout 60s at t=1000, checking at t=1061)
 		$pending1 = new Transfer(
 			id: $pending1Id,
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			debitAccountId: $debitAccountId,
+			creditAccountId: $creditAccountId,
 			amount: Amount::of(1000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::PENDING),
 			timeout: Duration::ofSeconds(60),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
@@ -799,15 +841,15 @@ final class TransferRepositoryTest extends TestCase
 		// Pending transfer 2: Not expired yet (timeout 120s at t=1000, checking at t=1061)
 		$pending2 = new Transfer(
 			id: $pending2Id,
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			debitAccountId: $debitAccountId,
+			creditAccountId: $creditAccountId,
 			amount: Amount::of(2000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::PENDING),
 			timeout: Duration::ofSeconds(120),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
@@ -816,15 +858,15 @@ final class TransferRepositoryTest extends TestCase
 		// Pending transfer 3: Expired but posted
 		$pending3 = new Transfer(
 			id: $pending3Id,
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			debitAccountId: $debitAccountId,
+			creditAccountId: $creditAccountId,
 			amount: Amount::of(3000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::PENDING),
 			timeout: Duration::ofSeconds(60),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
@@ -832,16 +874,16 @@ final class TransferRepositoryTest extends TestCase
 
 		// Post for pending3
 		$post3 = new Transfer(
-			id: Identifier::fromHex('55555555555555555555555555555555'),
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			id: Identifier::random(),
+			debitAccountId: $debitAccountId,
+			creditAccountId: $creditAccountId,
 			amount: Amount::of(3000),
 			pendingId: $pending3Id,
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::POST_PENDING),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1030),
@@ -850,15 +892,15 @@ final class TransferRepositoryTest extends TestCase
 		// Pending transfer 4: Expired (timeout 30s at t=1000, checking at t=1061)
 		$pending4 = new Transfer(
 			id: $pending4Id,
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			debitAccountId: $debitAccountId,
+			creditAccountId: $creditAccountId,
 			amount: Amount::of(4000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::PENDING),
 			timeout: Duration::ofSeconds(30),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
@@ -871,7 +913,7 @@ final class TransferRepositoryTest extends TestCase
 		$repository->write($pending4);
 
 		// Check at t=1061
-		$expired = $repository->expired(Instant::of(1061))->toList();
+		$expired = $repository->ofExternalIdPrimary($groupId)->expired(Instant::of(1061))->toList();
 
 		// Should return only pending1 and pending4 (both expired and not posted/voided)
 		self::assertCount(2, $expired);
@@ -887,18 +929,20 @@ final class TransferRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new TransferRepository($connection);
 
+		$groupId = Identifier::random();
+
 		// Create a pending transfer that hasn't expired yet
 		$pending = new Transfer(
-			id: Identifier::fromHex('11111111111111111111111111111111'),
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			id: Identifier::random(),
+			debitAccountId: Identifier::random(),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(1000),
 			pendingId: Identifier::zero(),
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::of(TransferFlags::PENDING),
 			timeout: Duration::ofSeconds(60),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),
@@ -907,24 +951,24 @@ final class TransferRepositoryTest extends TestCase
 		$repository->write($pending);
 
 		// Check before expiration
-		$expired = $repository->expired(Instant::of(1000))->toList();
+		$expired = $repository->ofExternalIdPrimary($groupId)->expired(Instant::of(1000))->toList();
 
 		self::assertCount(0, $expired);
 	}
 
-	private function createTransfer(Identifier $id, ?Code $ledger = null): Transfer
+	private function createTransfer(Identifier $id, ?Code $ledger = null, ?Identifier $groupId = null): Transfer
 	{
 		return new Transfer(
 			id: $id,
-			debitAccountId: Identifier::fromHex('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
-			creditAccountId: Identifier::fromHex('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+			debitAccountId: Identifier::random(),
+			creditAccountId: Identifier::random(),
 			amount: Amount::of(1000),
 			pendingId: Identifier::zero(),
 			ledger: $ledger ?? Code::of(1),
 			code: Code::of(100),
 			flags: TransferFlags::none(),
 			timeout: Duration::zero(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId ?? Identifier::random(),
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			timestamp: Instant::of(1000),

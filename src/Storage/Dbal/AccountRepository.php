@@ -63,6 +63,16 @@ final class AccountRepository extends Repository implements AccountReader, Accou
 		'id' => 'binary',
 		'external_id_primary' => 'binary',
 		'external_id_secondary' => 'binary',
+		'ledger' => 'integer',
+		'code' => 'integer',
+		'flags' => 'integer',
+		'external_code_primary' => 'integer',
+		'debits_posted' => 'integer',
+		'credits_posted' => 'integer',
+		'debits_pending' => 'integer',
+		'credits_pending' => 'integer',
+		'timestamp_seconds' => 'integer',
+		'timestamp_nanos' => 'integer',
 	];
 
 	public function __construct(

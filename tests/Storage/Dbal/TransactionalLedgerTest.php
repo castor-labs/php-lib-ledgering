@@ -30,15 +30,6 @@ use PHPUnit\Framework\TestCase;
 #[Group('integration')]
 final class TransactionalLedgerTest extends TestCase
 {
-	#[\Override]
-	protected function setUp(): void
-	{
-		$connection = Database::connection();
-		$connection->executeStatement('TRUNCATE TABLE ledgering_accounts CASCADE');
-		$connection->executeStatement('TRUNCATE TABLE ledgering_transfers RESTART IDENTITY CASCADE');
-		$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances RESTART IDENTITY CASCADE');
-	}
-
 	#[Test]
 	public function it_commits_successful_operations(): void
 	{
@@ -50,7 +41,7 @@ final class TransactionalLedgerTest extends TestCase
 		$standardLedger = new StandardLedger($accounts, $transfers, $balances);
 		$ledger = new TransactionalLedger($connection, $standardLedger);
 
-		$accountId = Identifier::fromHex('11111111111111111111111111111111');
+		$accountId = Identifier::random();
 
 		$ledger->execute(
 			CreateAccount::with(
@@ -61,8 +52,7 @@ final class TransactionalLedgerTest extends TestCase
 		);
 
 		// Verify account was created
-		$account = $accounts->ofId($accountId)->first();
-		self::assertNotNull($account);
+		$account = $accounts->ofId($accountId)->one();
 		self::assertTrue($account->id->equals($accountId));
 	}
 
@@ -77,7 +67,7 @@ final class TransactionalLedgerTest extends TestCase
 		$standardLedger = new StandardLedger($accounts, $transfers, $balances);
 		$ledger = new TransactionalLedger($connection, $standardLedger);
 
-		$accountId = Identifier::fromHex('11111111111111111111111111111111');
+		$accountId = Identifier::random();
 
 		try {
 			$ledger->execute(
@@ -115,9 +105,9 @@ final class TransactionalLedgerTest extends TestCase
 		$standardLedger = new StandardLedger($accounts, $transfers, $balances);
 		$ledger = new TransactionalLedger($connection, $standardLedger);
 
-		$accountOne = Identifier::fromHex('11111111111111111111111111111111');
-		$accountTwo = Identifier::fromHex('22222222222222222222222222222222');
-		$transferId = Identifier::fromHex('33333333333333333333333333333333');
+		$accountOne = Identifier::random();
+		$accountTwo = Identifier::random();
+		$transferId = Identifier::random();
 
 		$ledger->execute(
 			CreateAccount::with(id: $accountOne, ledger: 1, code: 100),
@@ -133,13 +123,10 @@ final class TransactionalLedgerTest extends TestCase
 		);
 
 		// Verify all operations succeeded
-		$acc1 = $accounts->ofId($accountOne)->first();
-		$acc2 = $accounts->ofId($accountTwo)->first();
-		$transfer = $transfers->ofId($transferId)->first();
+		$acc1 = $accounts->ofId($accountOne)->one();
+		$acc2 = $accounts->ofId($accountTwo)->one();
+		$transfer = $transfers->ofId($transferId)->one();
 
-		self::assertNotNull($acc1);
-		self::assertNotNull($acc2);
-		self::assertNotNull($transfer);
 		self::assertSame(1000, $acc1->balance->debitsPosted->value);
 		self::assertSame(1000, $acc2->balance->creditsPosted->value);
 	}

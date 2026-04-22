@@ -46,7 +46,11 @@ abstract class Repository implements Reader
 		private QueryBuilder $qb,
 		private readonly AbstractPlatform $platform,
 		private readonly array $typeMap = [],
-	) {}
+	) {
+		// Default ordering by sequence ensures deterministic results across all
+		// database platforms for methods like first(), toList(), slice(), etc.
+		$this->qb->orderBy('sequence', 'ASC');
+	}
 
 	/**
 	 * Clone the query builder when cloning the reader.
