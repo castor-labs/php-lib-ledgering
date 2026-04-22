@@ -17,6 +17,8 @@ declare(strict_types=1);
 namespace Castor\Ledgering\Storage\Dbal;
 
 use Castor\Ledgering\Infra\Database;
+use Doctrine\DBAL\Schema\Index\IndexType;
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -41,12 +43,12 @@ final class MigratorTest extends TestCase
 	{
 		$connection = Database::connection();
 		$schemaManager = $connection->createSchemaManager();
-		$table = $schemaManager->introspectTable('ledgering_accounts');
+		$table = $schemaManager->introspectTableByUnquotedName('ledgering_accounts');
 
 		// Verify primary key is sequence
-		$primaryKey = $table->getPrimaryKey();
+		$primaryKey = $table->getPrimaryKeyConstraint();
 		self::assertNotNull($primaryKey);
-		self::assertSame(['sequence'], $primaryKey->getColumns());
+		self::assertSame(['sequence'], \array_map(static fn(UnqualifiedName $n) => $n->getIdentifier()->getValue(), $primaryKey->getColumnNames()));
 
 		// Verify columns exist
 		self::assertTrue($table->hasColumn('sequence'));
@@ -67,7 +69,7 @@ final class MigratorTest extends TestCase
 		// Verify id has unique index
 		self::assertTrue($table->hasIndex('uniq_accounts_id'));
 		$idIndex = $table->getIndex('uniq_accounts_id');
-		self::assertTrue($idIndex->isUnique());
+		self::assertSame(IndexType::UNIQUE, $idIndex->getType());
 
 		// Verify other indexes
 		self::assertTrue($table->hasIndex('idx_accounts_external_id_primary'));
@@ -81,12 +83,12 @@ final class MigratorTest extends TestCase
 	{
 		$connection = Database::connection();
 		$schemaManager = $connection->createSchemaManager();
-		$table = $schemaManager->introspectTable('ledgering_transfers');
+		$table = $schemaManager->introspectTableByUnquotedName('ledgering_transfers');
 
 		// Verify primary key is sequence
-		$primaryKey = $table->getPrimaryKey();
+		$primaryKey = $table->getPrimaryKeyConstraint();
 		self::assertNotNull($primaryKey);
-		self::assertSame(['sequence'], $primaryKey->getColumns());
+		self::assertSame(['sequence'], \array_map(static fn(UnqualifiedName $n) => $n->getIdentifier()->getValue(), $primaryKey->getColumnNames()));
 
 		// Verify columns exist
 		self::assertTrue($table->hasColumn('sequence'));
@@ -105,7 +107,7 @@ final class MigratorTest extends TestCase
 		// Verify id has unique index
 		self::assertTrue($table->hasIndex('uniq_transfers_id'));
 		$idIndex = $table->getIndex('uniq_transfers_id');
-		self::assertTrue($idIndex->isUnique());
+		self::assertSame(IndexType::UNIQUE, $idIndex->getType());
 
 		// Verify other indexes
 		self::assertTrue($table->hasIndex('idx_transfers_debit_account'));
@@ -119,12 +121,12 @@ final class MigratorTest extends TestCase
 	{
 		$connection = Database::connection();
 		$schemaManager = $connection->createSchemaManager();
-		$table = $schemaManager->introspectTable('ledgering_account_balances');
+		$table = $schemaManager->introspectTableByUnquotedName('ledgering_account_balances');
 
 		// Verify primary key is sequence
-		$primaryKey = $table->getPrimaryKey();
+		$primaryKey = $table->getPrimaryKeyConstraint();
 		self::assertNotNull($primaryKey);
-		self::assertSame(['sequence'], $primaryKey->getColumns());
+		self::assertSame(['sequence'], \array_map(static fn(UnqualifiedName $n) => $n->getIdentifier()->getValue(), $primaryKey->getColumnNames()));
 
 		// Verify columns exist
 		self::assertTrue($table->hasColumn('sequence'));
