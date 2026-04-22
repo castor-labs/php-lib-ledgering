@@ -58,9 +58,8 @@ final class TransferRepositoryTest extends TestCase
 
 		$repository->write($transfer);
 
-		$retrieved = $repository->ofId($transfer->id)->first();
+		$retrieved = $repository->ofId($transfer->id)->one();
 
-		self::assertNotNull($retrieved);
 		self::assertTrue($retrieved->id->equals($transfer->id));
 		self::assertTrue($retrieved->debitAccountId->equals($transfer->debitAccountId));
 		self::assertTrue($retrieved->creditAccountId->equals($transfer->creditAccountId));
@@ -97,9 +96,8 @@ final class TransferRepositoryTest extends TestCase
 
 		$repository->write($transfer);
 
-		$retrieved = $repository->ofExternalIdPrimary($externalId)->first();
+		$retrieved = $repository->ofExternalIdPrimary($externalId)->one();
 
-		self::assertNotNull($retrieved);
 		self::assertTrue($retrieved->externalIdPrimary->equals($externalId));
 	}
 
@@ -130,9 +128,8 @@ final class TransferRepositoryTest extends TestCase
 
 		$repository->write($transfer);
 
-		$retrieved = $repository->ofExternalIdSecondary($externalId)->first();
+		$retrieved = $repository->ofExternalIdSecondary($externalId)->one();
 
-		self::assertNotNull($retrieved);
 		self::assertTrue($retrieved->externalIdSecondary->equals($externalId));
 	}
 

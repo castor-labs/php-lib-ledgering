@@ -52,8 +52,7 @@ final class TransactionalLedgerTest extends TestCase
 		);
 
 		// Verify account was created
-		$account = $accounts->ofId($accountId)->first();
-		self::assertNotNull($account);
+		$account = $accounts->ofId($accountId)->one();
 		self::assertTrue($account->id->equals($accountId));
 	}
 
@@ -124,13 +123,10 @@ final class TransactionalLedgerTest extends TestCase
 		);
 
 		// Verify all operations succeeded
-		$acc1 = $accounts->ofId($accountOne)->first();
-		$acc2 = $accounts->ofId($accountTwo)->first();
-		$transfer = $transfers->ofId($transferId)->first();
+		$acc1 = $accounts->ofId($accountOne)->one();
+		$acc2 = $accounts->ofId($accountTwo)->one();
+		$transfer = $transfers->ofId($transferId)->one();
 
-		self::assertNotNull($acc1);
-		self::assertNotNull($acc2);
-		self::assertNotNull($transfer);
 		self::assertSame(1000, $acc1->balance->debitsPosted->value);
 		self::assertSame(1000, $acc2->balance->creditsPosted->value);
 	}

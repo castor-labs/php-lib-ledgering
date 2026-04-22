@@ -50,9 +50,8 @@ final class AccountBalanceRepositoryTest extends TestCase
 
 		$repository->write($balance);
 
-		$retrieved = $repository->ofAccountId($accountId)->first();
+		$retrieved = $repository->ofAccountId($accountId)->one();
 
-		self::assertNotNull($retrieved);
 		self::assertTrue($retrieved->accountId->equals($accountId));
 		self::assertSame(1000, $retrieved->balance->debitsPosted->value);
 		self::assertSame(500, $retrieved->balance->creditsPosted->value);
@@ -161,19 +160,16 @@ final class AccountBalanceRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new AccountBalanceRepository($connection);
 
-		$accountId1 = Identifier::random();
-		$accountId2 = Identifier::random();
+		$accountId = Identifier::random();
 
-		$balance1 = new AccountBalance($accountId1, Balance::zero(), Instant::of(1000));
-		$balance2 = new AccountBalance($accountId2, Balance::zero(), Instant::of(2000));
+		$repository->write(new AccountBalance($accountId, Balance::zero(), Instant::of(1000)));
+		$repository->write(new AccountBalance($accountId, Balance::zero(), Instant::of(2000)));
 
-		$repository->write($balance1);
-		$repository->write($balance2);
-
-		$first = $repository->ofAccountId($accountId1, $accountId2)->first();
+		$first = $repository->ofAccountId($accountId)->first();
 
 		self::assertNotNull($first);
-		self::assertTrue($first->accountId->equals($accountId1));
+		self::assertTrue($first->accountId->equals($accountId));
+		self::assertSame(1000, $first->timestamp->seconds);
 	}
 
 	#[Test]

@@ -68,6 +68,15 @@ final class Database
 
 			$params = $dsnParser->parse($uri);
 
+			// SQL Server ODBC Driver 18+ requires SSL certificate verification by default.
+			// In CI/test environments the server typically uses a self-signed certificate,
+			// so we need to trust it explicitly.
+			if (isset($params['driver']) && $params['driver'] === 'pdo_sqlsrv') {
+				$params['driverOptions'] = [
+					'TrustServerCertificate' => 'yes',
+				];
+			}
+
 			self::$connection = DriverManager::getConnection($params);
 		}
 

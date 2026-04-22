@@ -54,9 +54,8 @@ final class AccountRepositoryTest extends TestCase
 
 		$repository->write($account);
 
-		$retrieved = $repository->ofId($accountId)->first();
+		$retrieved = $repository->ofId($accountId)->one();
 
-		self::assertNotNull($retrieved);
 		self::assertTrue($retrieved->id->equals($accountId));
 		self::assertSame(1, $retrieved->ledger->value);
 		self::assertSame(100, $retrieved->code->value);
@@ -111,8 +110,7 @@ final class AccountRepositoryTest extends TestCase
 		// Should only have one account with this group id
 		self::assertSame(1, $repository->ofExternalIdPrimary($groupId)->count());
 
-		$retrieved = $repository->ofId($id)->first();
-		self::assertNotNull($retrieved);
+		$retrieved = $repository->ofId($id)->one();
 		self::assertSame(1000, $retrieved->balance->debitsPosted->value);
 		self::assertSame(500, $retrieved->balance->creditsPosted->value);
 		self::assertSame(2000, $retrieved->timestamp->seconds);
@@ -141,9 +139,8 @@ final class AccountRepositoryTest extends TestCase
 
 		$repository->write($account);
 
-		$retrieved = $repository->ofExternalIdPrimary($externalId)->first();
+		$retrieved = $repository->ofExternalIdPrimary($externalId)->one();
 
-		self::assertNotNull($retrieved);
 		self::assertTrue($retrieved->externalIdPrimary->equals($externalId));
 	}
 }
