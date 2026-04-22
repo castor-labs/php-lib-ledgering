@@ -37,6 +37,7 @@
       <code><![CDATA[metadata]]></code>
     </UndefinedMethod>
   </file>
+
   <file src="tests/IdempotentLedgerTest.php">
     <PropertyNotSetInConstructor>
       <code><![CDATA[$accountBalances]]></code>

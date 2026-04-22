@@ -19,11 +19,6 @@ namespace Castor\Ledgering\Infra;
 use Castor\Ledgering\Storage\Dbal\Migrator;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Platforms\MariaDBPlatform;
-use Doctrine\DBAL\Platforms\MySQLPlatform;
-use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
-use Doctrine\DBAL\Platforms\SQLitePlatform;
-use Doctrine\DBAL\Platforms\SQLServerPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Tools\DsnParser;
 
@@ -119,54 +114,6 @@ final class Database
 		}
 
 		self::$initialized = true;
-	}
-
-	/**
-	 * Reset the database to a clean state.
-	 *
-	 * Truncates all tables to remove data while keeping the schema intact.
-	 * This is faster than dropping and recreating tables.
-	 *
-	 * Supports vendor-specific optimizations for:
-	 * - PostgreSQL: TRUNCATE with CASCADE
-	 * - MySQL/MariaDB: TRUNCATE with foreign key checks disabled
-	 * - SQL Server: TRUNCATE (no foreign keys in schema)
-	 * - SQLite: DELETE (SQLite doesn't support TRUNCATE)
-	 */
-	public static function reset(): void
-	{
-		$connection = self::connection();
-		$platform = $connection->getDatabasePlatform();
-
-		if ($platform instanceof MySQLPlatform || $platform instanceof MariaDBPlatform) {
-			// MySQL/MariaDB: Disable foreign key checks to allow truncating tables with foreign keys
-			$connection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
-			$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances');
-			$connection->executeStatement('TRUNCATE TABLE ledgering_transfers');
-			$connection->executeStatement('TRUNCATE TABLE ledgering_accounts');
-			$connection->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
-		} elseif ($platform instanceof PostgreSQLPlatform) {
-			// PostgreSQL: Use CASCADE to handle dependencies
-			$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances, ledgering_transfers, ledgering_accounts RESTART IDENTITY CASCADE');
-		} elseif ($platform instanceof SQLServerPlatform) {
-			// SQL Server: TRUNCATE works since there are no foreign keys in the schema
-			// Note: Must truncate in reverse dependency order (balances -> transfers -> accounts)
-			$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances');
-			$connection->executeStatement('TRUNCATE TABLE ledgering_transfers');
-			$connection->executeStatement('TRUNCATE TABLE ledgering_accounts');
-		} elseif ($platform instanceof SQLitePlatform) {
-			// SQLite: Doesn't support TRUNCATE, use DELETE instead
-			$connection->executeStatement('DELETE FROM ledgering_account_balances');
-			$connection->executeStatement('DELETE FROM ledgering_transfers');
-			$connection->executeStatement('DELETE FROM ledgering_accounts');
-			// Reset autoincrement sequences (sqlite_sequence table is created automatically when using AUTOINCREMENT)
-			$connection->executeStatement("DELETE FROM sqlite_sequence WHERE name IN ('ledgering_account_balances', 'ledgering_transfers', 'ledgering_accounts')");
-		} else {
-			// Fallback for unknown databases: use DELETE
-			$connection->executeStatement('DELETE FROM ledgering_account_balances');
-			$connection->executeStatement('DELETE FROM ledgering_transfers');
-			$connection->executeStatement('DELETE FROM ledgering_accounts');
-		}
 	}
 
 	/**

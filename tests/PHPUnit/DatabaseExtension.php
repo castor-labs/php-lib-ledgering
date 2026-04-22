@@ -17,8 +17,6 @@ declare(strict_types=1);
 namespace Castor\Ledgering\PHPUnit;
 
 use Castor\Ledgering\Infra\Database;
-use PHPUnit\Event\Test\Finished;
-use PHPUnit\Event\Test\FinishedSubscriber;
 use PHPUnit\Event\Test\PreparationStarted;
 use PHPUnit\Event\Test\PreparationStartedSubscriber;
 use PHPUnit\Event\TestRunner\ExecutionFinished;
@@ -41,7 +39,6 @@ final class DatabaseExtension implements Extension
 	public function bootstrap(Configuration $configuration, Facade $facade, ParameterCollection $parameters): void
 	{
 		$facade->registerSubscriber(new DatabasePreparationSubscriber());
-		$facade->registerSubscriber(new DatabaseCleanupSubscriber());
 		$facade->registerSubscriber(new DatabaseShutdownSubscriber());
 	}
 }
@@ -81,22 +78,6 @@ final class DatabasePreparationSubscriber implements PreparationStartedSubscribe
 		}
 
 		return false;
-	}
-}
-
-/**
- * Subscriber that runs after each database test.
- *
- * Database is NOT reset between tests. Tests are expected to use unique
- * identifiers and scoped queries to avoid interference with each other.
- */
-final class DatabaseCleanupSubscriber implements FinishedSubscriber
-{
-	#[\Override]
-	public function notify(Finished $event): void
-	{
-		// No-op: tests are designed to be independent without requiring
-		// database truncation between runs.
 	}
 }
 
