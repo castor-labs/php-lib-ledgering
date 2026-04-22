@@ -49,7 +49,7 @@ jobs:
           - ${{ matrix.db_port }}:${{ matrix.db_port }}
 
       rabbitmq:
-        image: rabbitmq:3-management-alpine
+        image: rabbitmq:4-management-alpine
         ports:
           - 5672:5672
           - 15672:15672
@@ -66,7 +66,7 @@ jobs:
 
     steps:
       - name: "Checkout Code"
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v6"
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
         with:
@@ -83,7 +83,7 @@ jobs:
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
       - name: "Cache Dependencies"
-        uses: "actions/cache@v4"
+        uses: "actions/cache@v5"
         with:
           path: |
             ~/.composer/cache
@@ -106,7 +106,7 @@ jobs:
       - name: "Run Continuous Integration"
         run: composer ci
       - name: "Upload Coverage Report"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: "coverage-report-${{ matrix.db }}"
           path: .dev/coverage

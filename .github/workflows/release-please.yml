@@ -19,14 +19,14 @@ jobs:
     runs-on: ubuntu-latest
     name: Manage Release
     steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v3
         name: "Call Mr Piper"
         id: generate-token
         with:
           app-id: 938088
           private-key: ${{ secrets.MR_PIPER_APP_PRIVATE_KEY }}
 
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         name: "Run Release Tasks"
         id: release
         with:

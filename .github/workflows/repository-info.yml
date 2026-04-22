@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Extract Description from composer.json
         uses: sergeysova/jq-action@v2
         id: description
@@ -32,7 +32,7 @@ jobs:
         with:
           cmd: jq -c .keywords composer.json
       - name: Update Details
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.ORG_GITHUB_TOKEN }}
           script: |
