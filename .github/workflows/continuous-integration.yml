@@ -74,7 +74,7 @@ jobs:
           php-version: "8.3"
           ini-values: memory_limit=-1
           tools: composer:v2
-          extensions: pdo_sqlsrv
+          extensions: pdo_sqlsrv, decimal
       - name: "Install SQL Server ODBC Driver"
         if: matrix.db == 'sqlserver'
         run: |

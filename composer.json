@@ -29,6 +29,7 @@
   "autoload-dev": {
     "psr-4": {
       "Castor\\Ledgering\\": "tests",
+      "Castor\\Ledgering\\Example\\": "examples/src",
       "Castor\\Symfony\\": "bundle/tests"
     }
   },
@@ -47,12 +48,14 @@
     "symfony/dependency-injection": "^7.0"
   },
   "require-dev": {
+    "ext-decimal": "*",
     "phpunit/phpunit": "^10.5",
     "friendsofphp/php-cs-fixer": "^3.69",
     "vimeo/psalm": "^6.8",
     "castor/code-style": "^1.0",
     "doctrine/migrations": "^3.0",
-    "symfony/config": "^7.4"
+    "symfony/config": "^7.4",
+    "brick/date-time": "^0.9.0"
   },
   "scripts": {
     "pr": [

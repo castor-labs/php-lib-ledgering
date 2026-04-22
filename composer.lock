@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8bd7b6533285fcdc0632b86a3e9629a0",
+    "content-hash": "60b6c665fa42045a35ff2b0537765d61",
     "packages": [
         {
             "name": "castor/functions",
@@ -2410,6 +2410,78 @@
                 }
             ],
             "time": "2024-08-03T19:31:26+00:00"
+        },
+        {
+            "name": "brick/date-time",
+            "version": "0.9.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/brick/date-time.git",
+                "reference": "ecf8e67a27eb2e5799532c25a30172f81118794a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/brick/date-time/zipball/ecf8e67a27eb2e5799532c25a30172f81118794a",
+                "reference": "ecf8e67a27eb2e5799532c25a30172f81118794a",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "guzzlehttp/guzzle": "^7.0",
+                "php-coveralls/php-coveralls": "^2.2",
+                "phpunit/phpunit": "^11.0"
+            },
+            "suggest": {
+                "ext-timezonedb": "This PECL extension provides up-to-date timezone information"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Brick\\DateTime\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Date and time library",
+            "keywords": [
+                "DayOfWeek",
+                "LocalDateRange",
+                "LocalDateTime",
+                "LocalTime",
+                "Month",
+                "MonthDay",
+                "Year",
+                "YearMonth",
+                "YearMonthRange",
+                "YearWeek",
+                "ZonedDateTime",
+                "brick",
+                "date",
+                "datetime",
+                "duration",
+                "instant",
+                "interval",
+                "localdate",
+                "period",
+                "stopwatch",
+                "time",
+                "timezone"
+            ],
+            "support": {
+                "issues": "https://github.com/brick/date-time/issues",
+                "source": "https://github.com/brick/date-time/tree/0.9.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/BenMorel",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-01-03T16:33:27+00:00"
         },
         {
             "name": "castor/code-style",
@@ -7395,6 +7467,8 @@
     "platform": {
         "php": ">=8.3"
     },
-    "platform-dev": [],
+    "platform-dev": {
+        "ext-decimal": "*"
+    },
     "plugin-api-version": "2.6.0"
 }

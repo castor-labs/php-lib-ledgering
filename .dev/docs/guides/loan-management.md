@@ -1032,7 +1032,7 @@ The concepts we've covered—double-entry accounting, accrual accounting, paymen
 ## Next Steps
 
 - Read the [Domain Model](../domain-model.md) documentation for detailed API reference
-- Explore the [loan REPL source code](../../../examples/loan-repl) to see the complete implementation
+- Explore the [loan REPL source code](../../../examples/loan-repl.php) to see the complete implementation
 - Try building your own financial domain model (subscriptions, invoicing, etc.)
 - Experiment with different account topologies and waterfall orders
 

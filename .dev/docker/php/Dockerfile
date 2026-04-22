@@ -20,7 +20,7 @@ COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 FROM base AS dev
 
-RUN install-php-extensions xdebug pcntl posix pdo_pgsql pdo_sqlite
+RUN install-php-extensions xdebug pcntl posix pdo_pgsql pdo_sqlite decimal
 
 # Install and Configure XDebug
 COPY ./xdebug.ini /usr/local/etc/php/conf.d/60_xdebug.ini
