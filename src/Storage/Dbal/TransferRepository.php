@@ -67,6 +67,14 @@ final class TransferRepository extends Repository implements TransferReader, Tra
 		'pending_id' => 'binary',
 		'external_id_primary' => 'binary',
 		'external_id_secondary' => 'binary',
+		'amount' => 'integer',
+		'ledger' => 'integer',
+		'code' => 'integer',
+		'flags' => 'integer',
+		'timeout_seconds' => 'integer',
+		'external_code_primary' => 'integer',
+		'timestamp_seconds' => 'integer',
+		'timestamp_nanos' => 'integer',
 	];
 
 	public function __construct(

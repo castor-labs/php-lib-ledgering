@@ -53,6 +53,12 @@ final class AccountBalanceRepository extends Repository implements AccountBalanc
 {
 	private const array TYPE_MAP = [
 		'account_id' => 'binary',
+		'debits_posted' => 'integer',
+		'credits_posted' => 'integer',
+		'debits_pending' => 'integer',
+		'credits_pending' => 'integer',
+		'timestamp_seconds' => 'integer',
+		'timestamp_nanos' => 'integer',
 	];
 
 	public function __construct(
