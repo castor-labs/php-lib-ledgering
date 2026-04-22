@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 namespace Castor\Ledgering;
 
+use Random\Randomizer;
+
 /**
  * Represents a 16-byte identifier (128-bit).
  *
@@ -49,11 +51,17 @@ final readonly class Identifier
 	/**
 	 * Create a random identifier using cryptographically secure random bytes.
 	 *
+	 * @param Randomizer|null $randomizer Optional randomizer instance. If null, uses random_bytes()
+	 *
 	 * @throws \Exception if random bytes cannot be generated
 	 */
-	public static function random(): self
+	public static function random(?Randomizer $randomizer = null): self
 	{
-		return new self(\random_bytes(self::BYTE_LENGTH));
+		if ($randomizer === null) {
+			return new self(\random_bytes(self::BYTE_LENGTH));
+		}
+
+		return new self($randomizer->getBytes(self::BYTE_LENGTH));
 	}
 
 	/**

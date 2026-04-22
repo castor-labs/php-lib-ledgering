@@ -3,7 +3,7 @@
 use Castor\CodeStyle\ConfigBuilder;
 
 $finder = PhpCsFixer\Finder::create()
-    ->in(["src", "tests"])
+    ->in(["src", "tests", "examples"])
     ->notName('definition.php')
 ;
 
