@@ -29,14 +29,11 @@
   <file src="tests/PHPUnit/DatabaseExtension.php">
     <MixedAssignment>
       <code><![CDATA[$metadata]]></code>
-      <code><![CDATA[$metadata]]></code>
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[isGroup]]></code>
-      <code><![CDATA[isGroup]]></code>
     </MixedMethodCall>
     <UndefinedMethod>
-      <code><![CDATA[metadata]]></code>
       <code><![CDATA[metadata]]></code>
     </UndefinedMethod>
   </file>

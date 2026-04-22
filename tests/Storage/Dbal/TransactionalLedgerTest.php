@@ -30,15 +30,6 @@ use PHPUnit\Framework\TestCase;
 #[Group('integration')]
 final class TransactionalLedgerTest extends TestCase
 {
-	#[\Override]
-	protected function setUp(): void
-	{
-		$connection = Database::connection();
-		$connection->executeStatement('TRUNCATE TABLE ledgering_accounts CASCADE');
-		$connection->executeStatement('TRUNCATE TABLE ledgering_transfers RESTART IDENTITY CASCADE');
-		$connection->executeStatement('TRUNCATE TABLE ledgering_account_balances RESTART IDENTITY CASCADE');
-	}
-
 	#[Test]
 	public function it_commits_successful_operations(): void
 	{
@@ -50,7 +41,7 @@ final class TransactionalLedgerTest extends TestCase
 		$standardLedger = new StandardLedger($accounts, $transfers, $balances);
 		$ledger = new TransactionalLedger($connection, $standardLedger);
 
-		$accountId = Identifier::fromHex('11111111111111111111111111111111');
+		$accountId = Identifier::random();
 
 		$ledger->execute(
 			CreateAccount::with(
@@ -77,7 +68,7 @@ final class TransactionalLedgerTest extends TestCase
 		$standardLedger = new StandardLedger($accounts, $transfers, $balances);
 		$ledger = new TransactionalLedger($connection, $standardLedger);
 
-		$accountId = Identifier::fromHex('11111111111111111111111111111111');
+		$accountId = Identifier::random();
 
 		try {
 			$ledger->execute(
@@ -115,9 +106,9 @@ final class TransactionalLedgerTest extends TestCase
 		$standardLedger = new StandardLedger($accounts, $transfers, $balances);
 		$ledger = new TransactionalLedger($connection, $standardLedger);
 
-		$accountOne = Identifier::fromHex('11111111111111111111111111111111');
-		$accountTwo = Identifier::fromHex('22222222222222222222222222222222');
-		$transferId = Identifier::fromHex('33333333333333333333333333333333');
+		$accountOne = Identifier::random();
+		$accountTwo = Identifier::random();
+		$transferId = Identifier::random();
 
 		$ledger->execute(
 			CreateAccount::with(id: $accountOne, ledger: 1, code: 100),

@@ -31,27 +31,21 @@ use PHPUnit\Framework\TestCase;
 #[Group('integration')]
 final class AccountRepositoryTest extends TestCase
 {
-	#[\Override]
-	protected function setUp(): void
-	{
-		$connection = Database::connection();
-
-		// Clean up accounts table before each test
-		$connection->executeStatement('TRUNCATE TABLE ledgering_accounts CASCADE');
-	}
-
 	#[Test]
 	public function it_writes_and_reads_account(): void
 	{
 		$connection = Database::connection();
 		$repository = new AccountRepository($connection);
 
+		$accountId = Identifier::random();
+		$groupId = Identifier::random();
+
 		$account = new Account(
-			id: Identifier::fromHex('0123456789abcdef0123456789abcdef'),
+			id: $accountId,
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: AccountFlags::none(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			balance: Balance::zero(),
@@ -60,10 +54,10 @@ final class AccountRepositoryTest extends TestCase
 
 		$repository->write($account);
 
-		$retrieved = $repository->ofId($account->id)->first();
+		$retrieved = $repository->ofId($accountId)->first();
 
 		self::assertNotNull($retrieved);
-		self::assertTrue($retrieved->id->equals($account->id));
+		self::assertTrue($retrieved->id->equals($accountId));
 		self::assertSame(1, $retrieved->ledger->value);
 		self::assertSame(100, $retrieved->code->value);
 		self::assertSame(1234567890, $retrieved->timestamp->seconds);
@@ -76,7 +70,8 @@ final class AccountRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new AccountRepository($connection);
 
-		$id = Identifier::fromHex('0123456789abcdef0123456789abcdef');
+		$id = Identifier::random();
+		$groupId = Identifier::random();
 
 		// Write initial account
 		$account1 = new Account(
@@ -84,7 +79,7 @@ final class AccountRepositoryTest extends TestCase
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: AccountFlags::none(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			balance: Balance::zero(),
@@ -99,7 +94,7 @@ final class AccountRepositoryTest extends TestCase
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: AccountFlags::none(),
-			externalIdPrimary: Identifier::zero(),
+			externalIdPrimary: $groupId,
 			externalIdSecondary: Identifier::zero(),
 			externalCodePrimary: Code::of(1),
 			balance: new Balance(
@@ -113,8 +108,8 @@ final class AccountRepositoryTest extends TestCase
 
 		$repository->write($account2);
 
-		// Should only have one account
-		self::assertSame(1, $repository->count());
+		// Should only have one account with this group id
+		self::assertSame(1, $repository->ofExternalIdPrimary($groupId)->count());
 
 		$retrieved = $repository->ofId($id)->first();
 		self::assertNotNull($retrieved);
@@ -129,10 +124,11 @@ final class AccountRepositoryTest extends TestCase
 		$connection = Database::connection();
 		$repository = new AccountRepository($connection);
 
-		$externalId = Identifier::fromHex('ffffffffffffffffffffffffffffffff');
+		$accountId = Identifier::random();
+		$externalId = Identifier::random();
 
 		$account = new Account(
-			id: Identifier::fromHex('0123456789abcdef0123456789abcdef'),
+			id: $accountId,
 			ledger: Code::of(1),
 			code: Code::of(100),
 			flags: AccountFlags::none(),

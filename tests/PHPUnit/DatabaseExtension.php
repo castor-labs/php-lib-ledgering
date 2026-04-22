@@ -33,7 +33,6 @@ use PHPUnit\TextUI\Configuration\Configuration;
  *
  * This extension:
  * - Initializes the database schema once before the first database test
- * - Resets the database to a clean state after each database test
  * - Closes the database connection after all tests finish
  */
 final class DatabaseExtension implements Extension
@@ -86,35 +85,18 @@ final class DatabasePreparationSubscriber implements PreparationStartedSubscribe
 }
 
 /**
- * Subscriber that resets the database after each database test.
+ * Subscriber that runs after each database test.
+ *
+ * Database is NOT reset between tests. Tests are expected to use unique
+ * identifiers and scoped queries to avoid interference with each other.
  */
 final class DatabaseCleanupSubscriber implements FinishedSubscriber
 {
 	#[\Override]
 	public function notify(Finished $event): void
 	{
-		// Check if the test was in the 'integration' group
-		if (!$this->isDbTest($event)) {
-			return;
-		}
-
-		// Reset database to clean state after each test
-		Database::reset();
-	}
-
-	private function isDbTest(Finished $event): bool
-	{
-		$test = $event->test();
-
-		// Get test metadata to check for groups
-		$metadata = $test->metadata();
-
-		// Check if test has 'integration' group
-		if ($metadata->isGroup('integration')) {
-			return true;
-		}
-
-		return false;
+		// No-op: tests are designed to be independent without requiring
+		// database truncation between runs.
 	}
 }
 
