@@ -43,6 +43,7 @@ final readonly class StandardLedger implements Ledger
 		private TransferReader&TransferWriter $transfers,
 		private AccountBalanceReader&AccountBalanceWriter $accountBalances,
 		private Clock $clock = new DefaultClock(),
+		private IdentifierFactory $identifiers = new TimeOrderedMonotonic(),
 	) {}
 
 	#[\Override]
@@ -393,7 +394,7 @@ final readonly class StandardLedger implements Ledger
 		foreach ($expiredTransfers as $transfer) {
 			$this->voidPendingTransfer(
 				CreateTransfer::with(
-					id: Identifier::random(),
+					id: $this->identifiers->create(),
 					debitAccountId: $transfer->debitAccountId,
 					creditAccountId: $transfer->creditAccountId,
 					amount: 0,
