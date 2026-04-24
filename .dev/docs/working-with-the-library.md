@@ -111,6 +111,137 @@ This gives you:
 
 Perfect for distributed systems where you need both transactional guarantees and retry safety.
 
+## Generating Identifiers
+
+Every account and transfer needs a unique 128-bit identifier. How you generate these identifiers has a significant impact on database performance, so it's worth understanding the options before you start creating accounts.
+
+### Why This Matters for Relational Databases
+
+If you've ever used random UUIDs as primary keys in PostgreSQL or MySQL, you might have noticed that performance degrades as your tables grow. That's not a coincidence — it's a consequence of how B-tree indexes work.
+
+When you insert a row with a random UUID, the database has to place it somewhere in the middle of the index. The target leaf page is probably not in memory, so the database reads it from disk, modifies it, and writes it back. Worse, the page may already be full, forcing a **page split** — the database has to allocate a new page, redistribute entries, and update parent pointers. Multiply that by millions of inserts and your index becomes fragmented, your buffer cache thrashes, and write latency climbs.
+
+Sequential identifiers solve this problem entirely. When each new ID is larger than the last, the database always appends to the rightmost leaf page — the one that's almost certainly already in memory. No random I/O, no page splits, no fragmentation. Insert performance stays constant as the table grows.
+
+This is exactly what `TimeOrderedMonotonic` gives you: identifiers that are always increasing, so your database indexes stay compact and fast.
+
+There's a second benefit: **cursor-based pagination**. Because the identifiers are time-ordered, you can paginate through results using the ID itself as a cursor (`WHERE id > :last_seen_id ORDER BY id LIMIT 20`). This is far more efficient than offset-based pagination, which forces the database to skip over rows it has already counted. Offset pagination also breaks when rows are inserted or deleted between pages.
+
+### The IdentifierFactory Interface
+
+The library provides an `IdentifierFactory` interface with a single method:
+
+```php
+use Castor\Ledgering\IdentifierFactory;
+
+interface IdentifierFactory
+{
+    public function create(): Identifier;
+}
+```
+
+You call `create()` every time you need a new identifier. The factory encapsulates the generation strategy, so your application code doesn't need to know or care about the algorithm behind it.
+
+### TimeOrderedMonotonic — The Recommended Implementation
+
+`TimeOrderedMonotonic` produces identifiers that are structurally similar to [ULIDs](https://github.com/ulid/spec). Each identifier is 128 bits laid out like this:
+
+```
+┌──────────────────────────┬──────────────────────────────────────┐
+│   48-bit timestamp (ms)  │        80-bit random/counter         │
+│     (6 bytes, BE)        │          (10 bytes)                  │
+└──────────────────────────┴──────────────────────────────────────┘
+```
+
+The first 6 bytes encode the current time in milliseconds since the Unix epoch, packed big-endian. The remaining 10 bytes are a random component that provides uniqueness.
+
+The **monotonic** part is the key property: when two identifiers are generated within the same millisecond, the factory doesn't pick a new random value. Instead, it increments the previous random component by one. This guarantees that every identifier is strictly greater than the last, even under high throughput.
+
+If the clock happens to go backward (for example, after an NTP correction), the factory detects this and keeps using the last observed timestamp while continuing to increment. This ensures that identifiers never go backward, no matter what the system clock does.
+
+Creating a factory is straightforward:
+
+```php
+use Castor\Ledgering\TimeOrderedMonotonic;
+
+$factory = new TimeOrderedMonotonic();
+
+$id1 = $factory->create();
+$id2 = $factory->create();
+$id3 = $factory->create();
+
+// $id1 < $id2 < $id3 (lexicographic byte ordering)
+```
+
+> [!NOTE]
+> **On random component overflow**
+>
+> In the extraordinarily unlikely event that more than 2^80 identifiers (~1.2 x 10^24) are generated within a single millisecond, the factory throws an `\OutOfBoundsException`. In practice, this is physically impossible — you would need to generate roughly a trillion identifiers per nanosecond to hit this limit.
+
+### Injecting the Factory Into the Ledger
+
+`StandardLedger` accepts an `IdentifierFactory` in its constructor. It uses it internally when it needs to generate identifiers on its own (for example, when expiring pending transfers). If you don't provide one, it defaults to `TimeOrderedMonotonic`:
+
+```php
+use Castor\Ledgering\StandardLedger;
+use Castor\Ledgering\TimeOrderedMonotonic;
+
+// Explicit (recommended — makes the dependency visible)
+$factory = new TimeOrderedMonotonic();
+
+$ledger = new StandardLedger(
+    accounts: $accounts,
+    transfers: $transfers,
+    accountBalances: $accountBalances,
+    identifiers: $factory,
+);
+```
+
+You should also use the same factory when constructing commands in your application code:
+
+```php
+$ledger->execute(
+    CreateAccount::with(
+        id: $factory->create(),
+        ledger: 1,
+        code: 100,
+    ),
+    CreateTransfer::with(
+        id: $factory->create(),
+        debitAccountId: $debitAccountId,
+        creditAccountId: $creditAccountId,
+        amount: 5000,
+        ledger: 1,
+        code: 1,
+    ),
+);
+```
+
+Using the same `TimeOrderedMonotonic` instance across your application ensures that all identifiers are globally monotonic within that process.
+
+### Testability
+
+`TimeOrderedMonotonic` accepts a `Clock`, which makes it easy to control in tests. If you're already using `FixedClock` in your test suite, you can pass it to the factory to get deterministic, reproducible identifiers:
+
+```php
+$clock = FixedClock::at(1_700_000_000);
+$factory = new TimeOrderedMonotonic($clock);
+
+// All identifiers will have the same timestamp prefix
+$id1 = $factory->create();
+$id2 = $factory->create();  // Same ms, so random is incremented
+```
+
+### When Is Identifier::random() Still Appropriate?
+
+`Identifier::random()` is not deprecated and remains perfectly valid for:
+
+- **Unit tests** where ordering and index performance are irrelevant
+- **External identifiers** (`externalIdPrimary`, `externalIdSecondary`) that are not used as primary keys
+- **One-off scripts** or throwaway identifiers
+
+The rule of thumb: if the identifier will be stored as a primary key or indexed column in a database, use `IdentifierFactory`. For everything else, `Identifier::random()` is fine.
+
 ## Linking the Ledger to Your Application
 
 This is where the magic happens. You use **external identifiers** to connect ledger entities to your application's domain model.
@@ -365,6 +496,11 @@ Here's how to use them:
 
 ```php
 use Castor\Ledgering\Identifier;
+use Castor\Ledgering\TimeOrderedMonotonic;
+
+// Generate a time-ordered identifier (preferred for primary keys)
+$factory = new TimeOrderedMonotonic();
+$id = $factory->create();
 
 // From hexadecimal string (32 hex characters = 128 bits)
 $id = Identifier::fromHex('0123456789abcdef0123456789abcdef');
@@ -383,6 +519,8 @@ if ($id1->equals($id2)) {
 // Access raw bytes
 $bytes = $id->bytes;  // string (16 bytes)
 ```
+
+See [Generating Identifiers](#generating-identifiers) for a detailed explanation of why `TimeOrderedMonotonic` is the recommended way to create identifiers.
 
 ### Amount
 
@@ -569,15 +707,19 @@ try {
 
 Here are some tips for using Castor Ledgering effectively:
 
-### 1. Generate Identifiers Deterministically
+### 1. Use TimeOrderedMonotonic for Primary Keys
 
-Use consistent hashing of your application IDs:
+Always use `IdentifierFactory` to generate identifiers that will be stored in the database:
 
 ```php
-// ✓ Good: Deterministic
-$accountId = Identifier::hashOf($userId);
+// ✓ Good: Time-ordered, monotonic (optimal for database indexes)
+$factory = new TimeOrderedMonotonic();
+$accountId = $factory->create();
 
-// ❌ Bad: Random (can't find it later)
+// ✓ Good: Deterministic external ID from your application's ID
+$externalId = Identifier::hashOf($userId);
+
+// ❌ Bad: Random (causes index fragmentation at scale)
 $accountId = Identifier::fromHex(bin2hex(random_bytes(16)));
 ```
 

@@ -107,4 +107,14 @@ final readonly class Instant
 	{
 		return $this->seconds === $other->seconds && $this->nano === $other->nano;
 	}
+
+	/**
+	 * Convert this instant to milliseconds since the Unix epoch.
+	 *
+	 * Sub-millisecond precision is truncated (not rounded).
+	 */
+	public function toMilliseconds(): int
+	{
+		return ($this->seconds * 1000) + \intdiv($this->nano, 1_000_000);
+	}
 }
