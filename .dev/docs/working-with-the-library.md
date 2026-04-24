@@ -62,18 +62,18 @@ use Castor\Ledgering\Storage\Dbal\AccountBalanceRepository;
 use Castor\Ledgering\Storage\Dbal\TransactionalLedger;
 use Doctrine\DBAL\DriverManager;
 
-// Connect to your database
-$connection = DriverManager::getConnection([
+// Use a dedicated connection for the ledger (see warning below)
+$ledgerConnection = DriverManager::getConnection([
     'url' => 'postgresql://user:pass@localhost/ledger',
 ]);
 
 // Wrap the ledger in a transaction manager
 $ledger = new TransactionalLedger(
-    connection: $connection,
+    connection: $ledgerConnection,
     ledger: new StandardLedger(
-        accounts: new AccountRepository($connection),
-        transfers: new TransferRepository($connection),
-        accountBalances: new AccountBalanceRepository($connection),
+        accounts: new AccountRepository($ledgerConnection),
+        transfers: new TransferRepository($ledgerConnection),
+        accountBalances: new AccountBalanceRepository($ledgerConnection),
     ),
 );
 ```
@@ -84,6 +84,31 @@ The `TransactionalLedger` wrapper ensures that all operations are atomic—eithe
 > **Use transactions in production**
 >
 > Always use `TransactionalLedger` in production. It ensures that if you execute multiple commands together, they either all succeed or all fail. No partial updates.
+
+> [!WARNING]
+> **Isolation levels and database connections**
+>
+> `TransactionalLedger` sets the transaction isolation level to `REPEATABLE_READ` before each operation. This is the minimum level of isolation required for the consistency guarantees this library provides. It does **not** reset the isolation level back to its original value afterward, for performance reasons.
+>
+> This means any subsequent queries on the same connection will also run under `REPEATABLE_READ`, which may not be what your application expects. If your application code relies on `READ_COMMITTED` (the PostgreSQL default), it will silently get the wrong isolation level.
+>
+> **Use a dedicated connection for the ledger.** Even when the database is the same, a separate connection avoids this problem entirely:
+>
+> ```php
+> // Your application's connection (uses the default isolation level)
+> $appConnection = DriverManager::getConnection([
+>     'url' => 'postgresql://user:pass@localhost/myapp',
+> ]);
+>
+> // A dedicated connection for the ledger
+> $ledgerConnection = DriverManager::getConnection([
+>     'url' => 'postgresql://user:pass@localhost/myapp',
+> ]);
+> ```
+>
+> This also has a design benefit: two separate connections force you to think about the boundary between your application code and your ledger code, much like you would with a network partition in a distributed system.
+>
+> The isolation level is configurable via the constructor, but we only recommend `REPEATABLE_READ` (the default) or `SERIALIZABLE`. Using `READ_COMMITTED` or `READ_UNCOMMITTED` does not provide enough safety for financial operations.
 
 ### Combining Decorators
 
