@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/castor-labs/php-lib-ledgering/compare/0.2.0...0.3.0) (2026-04-24)
+
+
+### Features
+
+* Implement time ordered monotonic identifier generation ([#21](https://github.com/castor-labs/php-lib-ledgering/issues/21)) ([9816c95](https://github.com/castor-labs/php-lib-ledgering/commit/9816c954835866e903d4b936c796b6360e02bdf8))
+* Implemented repetable read isolation level ([#23](https://github.com/castor-labs/php-lib-ledgering/issues/23)) ([69dedd7](https://github.com/castor-labs/php-lib-ledgering/commit/69dedd79b8d0c4bd888146ddec5f6951ea1c4c13))
+
 ## [0.2.0](https://github.com/castor-labs/php-lib-ledgering/compare/0.1.1...0.2.0) (2026-01-08)
 
 
