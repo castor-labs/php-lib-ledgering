@@ -1003,16 +1003,16 @@
         },
         {
             "name": "symfony/http-kernel",
-            "version": "v7.4.10",
+            "version": "v7.4.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/http-kernel.git",
-                "reference": "23486f59234c6fd6e8f1bec97124f3829d686627"
+                "reference": "eb9d68199af3fcfb3fb4d2e227367b68f8c1bb88"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/http-kernel/zipball/23486f59234c6fd6e8f1bec97124f3829d686627",
-                "reference": "23486f59234c6fd6e8f1bec97124f3829d686627",
+                "url": "https://api.github.com/repos/symfony/http-kernel/zipball/eb9d68199af3fcfb3fb4d2e227367b68f8c1bb88",
+                "reference": "eb9d68199af3fcfb3fb4d2e227367b68f8c1bb88",
                 "shasum": ""
             },
             "require": {
@@ -1098,7 +1098,7 @@
             "description": "Provides a structured process for converting a Request into a Response",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/http-kernel/tree/v7.4.10"
+                "source": "https://github.com/symfony/http-kernel/tree/v7.4.11"
             },
             "funding": [
                 {
@@ -1118,7 +1118,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-05-06T12:07:34+00:00"
+            "time": "2026-05-13T17:55:00+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
