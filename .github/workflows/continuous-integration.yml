@@ -54,7 +54,7 @@ jobs:
         deps: ["lock", "highest", "lowest"]
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_DB: ledgering
           POSTGRES_USER: user
@@ -122,7 +122,7 @@ jobs:
             db_uri: "sqlsrv://sa:Secret123!@localhost:1433/ledgering"
     services:
       mysql:
-        image: mysql:8.4
+        image: mysql:9.7
         env:
           MYSQL_DATABASE: ledgering
           MYSQL_USER: user
@@ -136,7 +136,7 @@ jobs:
           --health-timeout 10s
           --health-retries 5
       sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
+        image: mcr.microsoft.com/mssql/server:2025-latest
         env:
           ACCEPT_EULA: Y
           SA_PASSWORD: Secret123!
