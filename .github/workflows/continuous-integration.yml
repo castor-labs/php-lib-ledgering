@@ -8,62 +8,9 @@ on:
     branches: ["main"]
 
 jobs:
-  php-checks:
-    name: PHP Checks (${{ matrix.db }})
+  checks:
+    name: Quality Checks
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - db: postgres
-            db_uri: "postgres://user:secret@localhost:5432/ledgering"
-            db_image: postgres:16-alpine
-            db_port: 5432
-          - db: mysql
-            db_uri: "mysql://user:secret@127.0.0.1:3306/ledgering"
-            db_image: mysql:8.0
-            db_port: 3306
-          - db: sqlite
-            db_uri: "sqlite:////tmp/ledgering.db"
-          - db: sqlserver
-            db_uri: "sqlsrv://sa:Secret123!@localhost:1433/ledgering"
-            db_image: mcr.microsoft.com/mssql/server:2022-latest
-            db_port: 1433
-
-    services:
-      database:
-        image: ${{ matrix.db_image || '' }}
-        env:
-          POSTGRES_DB: ledgering
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: secret
-          MYSQL_DATABASE: ledgering
-          MYSQL_USER: user
-          MYSQL_PASSWORD: secret
-          MYSQL_ROOT_PASSWORD: secret
-          ACCEPT_EULA: Y
-          SA_PASSWORD: Secret123!
-          MSSQL_PID: Developer
-        ports:
-          - ${{ matrix.db_port }}:${{ matrix.db_port }}
-
-      rabbitmq:
-        image: rabbitmq:4-management-alpine
-        ports:
-          - 5672:5672
-          - 15672:15672
-        options: >-
-          --health-cmd "rabbitmq-diagnostics check_port_connectivity"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-
-    env:
-      TEST_DATABASE_URI: ${{ matrix.db_uri }}
-      TEST_BROKER_URI: amqp://guest:guest@localhost:5672/
-      CAPTURE_WORKER_STDERR: 0
-
     steps:
       - name: "Checkout Code"
         uses: "actions/checkout@v6"
@@ -74,7 +21,146 @@ jobs:
           php-version: "8.3"
           ini-values: memory_limit=-1
           tools: composer:v2
-          extensions: pdo_sqlsrv, decimal
+          extensions: decimal, pdo_pgsql, pdo_mysql, pdo_sqlite, pdo_sqlsrv
+      - name: "Determine Composer Cache Dir"
+        id: composer-cache
+        run: |
+          echo "dir=$(composer -q config cache-files-dir)" >> $GITHUB_OUTPUT
+      - name: "Cache Dependencies"
+        uses: "actions/cache@v5"
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: "composer-8.3-checks-${{ hashFiles('composer.lock') }}"
+          restore-keys: "composer-8.3-checks-"
+      - name: "Install Dependencies"
+        run: "composer install --ansi --no-interaction --no-progress"
+      - name: "Check Rector"
+        run: composer rector:check
+      - name: "Check code style"
+        run: composer mago:fmt:check
+      - name: "Lint"
+        run: composer mago:lint
+      - name: "Analyse"
+        run: composer mago:analyze
+
+  test:
+    name: Test PHP ${{ matrix.php-version }} (${{ matrix.deps }})
+    runs-on: ubuntu-latest
+    needs: ["checks"]
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.3", "8.4"]
+        deps: ["lock", "highest", "lowest"]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ledgering
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U user -d ledgering"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+    env:
+      TEST_DATABASE_URI: postgres://user:secret@127.0.0.1:5432/ledgering
+    steps:
+      - name: "Checkout Code"
+        uses: "actions/checkout@v6"
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          coverage: "xdebug"
+          php-version: ${{ matrix.php-version }}
+          ini-values: memory_limit=-1
+          tools: composer:v2
+          extensions: decimal, pdo_pgsql, pdo_mysql, pdo_sqlite
+      - name: "Determine Composer Cache Dir"
+        id: composer-cache
+        run: |
+          echo "dir=$(composer -q config cache-files-dir)" >> $GITHUB_OUTPUT
+      - name: "Cache Dependencies"
+        uses: "actions/cache@v5"
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: "composer-${{ matrix.php-version }}-${{ matrix.deps }}-${{ hashFiles('composer.lock') }}"
+          restore-keys: "composer-${{ matrix.php-version }}-${{ matrix.deps }}-"
+      - name: "Install Dependencies"
+        if: ${{ matrix.deps == 'lock' }}
+        run: "composer install --ansi --no-interaction --no-progress"
+      - name: "Install Highest Dependencies"
+        if: ${{ matrix.deps == 'highest' }}
+        run: "composer update --ansi --no-interaction --no-progress"
+      - name: "Install Lowest Dependencies"
+        if: ${{ matrix.deps == 'lowest' }}
+        run: "composer update --prefer-lowest --ansi --no-interaction --no-progress"
+      - name: "Run Test Suite"
+        run: composer test
+      - name: "Upload Coverage Report"
+        uses: actions/upload-artifact@v7
+        with:
+          name: "coverage-report-${{ matrix.php-version }}-${{ matrix.deps }}"
+          path: .dev/coverage
+
+  db-compatibility:
+    name: DB Compatibility (${{ matrix.db }})
+    runs-on: ubuntu-latest
+    needs: ["checks"]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - db: mysql
+            db_uri: "mysql://user:secret@127.0.0.1:3306/ledgering"
+          - db: sqlite
+            db_uri: "sqlite:////tmp/ledgering.db"
+          - db: sqlserver
+            db_uri: "sqlsrv://sa:Secret123!@localhost:1433/ledgering"
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: ledgering
+          MYSQL_USER: user
+          MYSQL_PASSWORD: secret
+          MYSQL_ROOT_PASSWORD: secret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uuser -psecret"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: Secret123!
+          MSSQL_PID: Developer
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Secret123!' -C -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Secret123!' -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 12
+    env:
+      TEST_DATABASE_URI: ${{ matrix.db_uri }}
+    steps:
+      - name: "Checkout Code"
+        uses: "actions/checkout@v6"
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          coverage: "none"
+          php-version: "8.3"
+          ini-values: memory_limit=-1
+          tools: composer:v2
+          extensions: decimal, pdo_mysql, pdo_sqlite, pdo_sqlsrv
       - name: "Install SQL Server ODBC Driver"
         if: matrix.db == 'sqlserver'
         run: |
@@ -82,15 +168,18 @@ jobs:
           curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
+      - name: "Determine Composer Cache Dir"
+        id: composer-cache
+        run: |
+          echo "dir=$(composer -q config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: "Cache Dependencies"
         uses: "actions/cache@v5"
         with:
-          path: |
-            ~/.composer/cache
-          key: "composer-cache"
-          restore-keys: "composer-cache"
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: "composer-8.3-db-${{ matrix.db }}-${{ hashFiles('composer.lock') }}"
+          restore-keys: "composer-8.3-db-${{ matrix.db }}-"
       - name: "Install Dependencies"
-        run: "composer install --ansi --no-interaction --no-progress --no-suggest"
+        run: "composer install --ansi --no-interaction --no-progress"
       - name: "Create SQLite Database"
         if: matrix.db == 'sqlite'
         run: |
@@ -103,10 +192,5 @@ jobs:
           \$conn = new PDO('sqlsrv:Server=localhost;TrustServerCertificate=yes;', 'sa', 'Secret123!');
           \$conn->exec('CREATE DATABASE ledgering');
           "
-      - name: "Run Continuous Integration"
-        run: composer ci
-      - name: "Upload Coverage Report"
-        uses: actions/upload-artifact@v7
-        with:
-          name: "coverage-report-${{ matrix.db }}"
-          path: .dev/coverage
+      - name: "Run Integration Tests"
+        run: composer test:integration

@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering;
 
 use Castor\Ledgering\Storage\InMemory\AccountBalanceCollection;
@@ -49,11 +37,7 @@ final class IdempotentLedgerTest extends TestCase
 	#[Test]
 	public function it_creates_account_successfully(): void
 	{
-		$command = CreateAccount::with(
-			id: TestIdentifiers::accountOne(),
-			ledger: 1,
-			code: 100,
-		);
+		$command = CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100);
 
 		$this->ledger->execute($command);
 
@@ -64,11 +48,7 @@ final class IdempotentLedgerTest extends TestCase
 	#[Test]
 	public function it_suppresses_duplicate_account_creation(): void
 	{
-		$command = CreateAccount::with(
-			id: TestIdentifiers::accountOne(),
-			ledger: 1,
-			code: 100,
-		);
+		$command = CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100);
 
 		// First execution - creates the account
 		$this->ledger->execute($command);
@@ -181,11 +161,7 @@ final class IdempotentLedgerTest extends TestCase
 	#[Test]
 	public function it_handles_multiple_duplicate_attempts(): void
 	{
-		$command = CreateAccount::with(
-			id: TestIdentifiers::accountOne(),
-			ledger: 1,
-			code: 100,
-		);
+		$command = CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100);
 
 		// Execute the same command multiple times
 		$this->ledger->execute($command);
@@ -226,9 +202,7 @@ final class IdempotentLedgerTest extends TestCase
 	public function it_propagates_same_debit_and_credit_account_errors(): void
 	{
 		// Create account
-		$this->ledger->execute(
-			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
-		);
+		$this->ledger->execute(CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100));
 
 		// Try to transfer to the same account
 		$command = CreateTransfer::with(

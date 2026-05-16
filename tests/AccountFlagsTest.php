@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering;
 
 use PHPUnit\Framework\Attributes\Test;
@@ -61,9 +49,7 @@ final class AccountFlagsTest extends TestCase
 		$this->expectException(ConstraintViolation::class);
 		$this->expectExceptionCode(ErrorCode::InvalidFlags->value);
 
-		AccountFlags::of(
-			AccountFlags::DEBITS_MUST_NOT_EXCEED_CREDITS | AccountFlags::CREDITS_MUST_NOT_EXCEED_DEBITS,
-		);
+		AccountFlags::of(AccountFlags::DEBITS_MUST_NOT_EXCEED_CREDITS | AccountFlags::CREDITS_MUST_NOT_EXCEED_DEBITS);
 	}
 
 	#[Test]
@@ -85,9 +71,7 @@ final class AccountFlagsTest extends TestCase
 	#[Test]
 	public function it_adds_flags(): void
 	{
-		$flags = AccountFlags::none()
-			->with(AccountFlags::HISTORY)
-			->with(AccountFlags::CLOSED);
+		$flags = AccountFlags::none()->with(AccountFlags::HISTORY)->with(AccountFlags::CLOSED);
 
 		self::assertTrue($flags->hasHistory());
 		self::assertTrue($flags->isClosed());
@@ -96,8 +80,7 @@ final class AccountFlagsTest extends TestCase
 	#[Test]
 	public function it_removes_flags(): void
 	{
-		$flags = AccountFlags::of(AccountFlags::HISTORY | AccountFlags::CLOSED)
-			->without(AccountFlags::HISTORY);
+		$flags = AccountFlags::of(AccountFlags::HISTORY | AccountFlags::CLOSED)->without(AccountFlags::HISTORY);
 
 		self::assertFalse($flags->hasHistory());
 		self::assertTrue($flags->isClosed());

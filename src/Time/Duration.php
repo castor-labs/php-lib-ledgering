@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering\Time;
 
 /**
@@ -21,7 +9,7 @@ namespace Castor\Ledgering\Time;
  *
  * Immutable and always non-negative.
  */
-final readonly class Duration
+final readonly class Duration implements \Stringable
 {
 	private const int SECONDS_PER_MINUTE = 60;
 
@@ -35,7 +23,7 @@ final readonly class Duration
 
 	public function __toString(): string
 	{
-		return $this->seconds.'s';
+		return $this->seconds . 's';
 	}
 
 	/**
@@ -46,9 +34,7 @@ final readonly class Duration
 	public static function ofSeconds(int $seconds): self
 	{
 		if ($seconds < 0) {
-			throw new \InvalidArgumentException(
-				\sprintf('Duration cannot be negative, got %d seconds', $seconds),
-			);
+			throw new \InvalidArgumentException(\sprintf('Duration cannot be negative, got %d seconds', $seconds));
 		}
 
 		return new self($seconds);
@@ -69,21 +55,17 @@ final readonly class Duration
 	 *
 	 * @throws \InvalidArgumentException if any parameter is negative
 	 */
-	public static function of(
-		int $hours = 0,
-		int $minutes = 0,
-		int $seconds = 0,
-		int $days = 0,
-	): self {
+	public static function of(int $hours = 0, int $minutes = 0, int $seconds = 0, int $days = 0): self
+	{
 		if ($hours < 0 || $minutes < 0 || $seconds < 0 || $days < 0) {
 			throw new \InvalidArgumentException('Duration components cannot be negative');
 		}
 
 		$totalSeconds =
-			($days * self::SECONDS_PER_DAY) +
-			($hours * self::SECONDS_PER_HOUR) +
-			($minutes * self::SECONDS_PER_MINUTE) +
-			$seconds;
+			($days * self::SECONDS_PER_DAY)
+			+ ($hours * self::SECONDS_PER_HOUR)
+			+ ($minutes * self::SECONDS_PER_MINUTE)
+			+ $seconds;
 
 		return new self($totalSeconds);
 	}

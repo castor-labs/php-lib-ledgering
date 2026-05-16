@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering\Storage\Dbal;
 
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
@@ -51,7 +39,9 @@ final class Migrator
 		$accounts->addColumn('credits_pending', 'bigint', ['unsigned' => true]);
 		$accounts->addColumn('timestamp_seconds', 'bigint', ['unsigned' => true]);
 		$accounts->addColumn('timestamp_nanos', 'integer', ['unsigned' => true]);
-		$accounts->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('sequence')->create());
+		$accounts->addPrimaryKeyConstraint(
+			PrimaryKeyConstraint::editor()->setUnquotedColumnNames('sequence')->create(),
+		);
 		$accounts->addUniqueIndex(['id'], 'uniq_accounts_id');
 		$accounts->addIndex(['external_id_primary'], 'idx_accounts_external_id_primary');
 		$accounts->addIndex(['external_id_secondary'], 'idx_accounts_external_id_secondary');
@@ -74,7 +64,9 @@ final class Migrator
 		$transfers->addColumn('external_code_primary', 'integer', ['unsigned' => true]);
 		$transfers->addColumn('timestamp_seconds', 'bigint', ['unsigned' => true]);
 		$transfers->addColumn('timestamp_nanos', 'integer', ['unsigned' => true]);
-		$transfers->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('sequence')->create());
+		$transfers->addPrimaryKeyConstraint(
+			PrimaryKeyConstraint::editor()->setUnquotedColumnNames('sequence')->create(),
+		);
 		$transfers->addUniqueIndex(['id'], 'uniq_transfers_id');
 		$transfers->addIndex(['debit_account_id'], 'idx_transfers_debit_account');
 		$transfers->addIndex(['credit_account_id'], 'idx_transfers_credit_account');
@@ -93,7 +85,9 @@ final class Migrator
 		$balances->addColumn('credits_pending', 'bigint', ['unsigned' => true]);
 		$balances->addColumn('timestamp_seconds', 'bigint', ['unsigned' => true]);
 		$balances->addColumn('timestamp_nanos', 'integer', ['unsigned' => true]);
-		$balances->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('sequence')->create());
+		$balances->addPrimaryKeyConstraint(
+			PrimaryKeyConstraint::editor()->setUnquotedColumnNames('sequence')->create(),
+		);
 		$balances->addIndex(['account_id', 'timestamp_seconds', 'timestamp_nanos'], 'idx_balances_account_timestamp');
 	}
 

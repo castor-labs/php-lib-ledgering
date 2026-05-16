@@ -28,28 +28,29 @@ return static function (ContainerConfigurator $container): void {
 	$services = $container->services();
 
 	// Account Repository
-	$services->set('castor.ledgering.dbal.account_repository', AccountRepository::class)
-		->args([service('castor.ledgering.dbal.connection')]);
+	$services->set('castor.ledgering.dbal.account_repository', AccountRepository::class)->args([service(
+		'castor.ledgering.dbal.connection',
+	)]);
 
 	$services->alias(AccountReader::class, 'castor.ledgering.dbal.account_repository');
 
 	// Transfer Repository
-	$services->set('castor.ledgering.dbal.transfer_repository', TransferRepository::class)
-		->args([service('castor.ledgering.dbal.connection')]);
+	$services->set('castor.ledgering.dbal.transfer_repository', TransferRepository::class)->args([service(
+		'castor.ledgering.dbal.connection',
+	)]);
 
 	$services->alias(TransferReader::class, 'castor.ledgering.dbal.transfer_repository');
 
 	// Account Balance Repository
-	$services->set('castor.ledgering.dbal.account_balance_repository', AccountBalanceRepository::class)
-		->args([service('castor.ledgering.dbal.connection')]);
+	$services->set('castor.ledgering.dbal.account_balance_repository', AccountBalanceRepository::class)->args([service(
+		'castor.ledgering.dbal.connection',
+	)]);
 
 	$services->alias(AccountBalanceReader::class, 'castor.ledgering.dbal.account_balance_repository');
 
 	// Transactional Ledger (decorates the standard ledger)
-	$services->set('castor.ledgering.dbal.transactional_ledger', TransactionalLedger::class)
-		->args([
-			service('castor.ledgering.dbal.connection'),
-			service('castor.ledgering.ledger'),
-		]);
+	$services->set('castor.ledgering.dbal.transactional_ledger', TransactionalLedger::class)->args([
+		service('castor.ledgering.dbal.connection'),
+		service('castor.ledgering.ledger'),
+	]);
 };
-

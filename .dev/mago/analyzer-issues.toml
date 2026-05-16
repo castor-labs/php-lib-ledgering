@@ -1,0 +1,1045 @@
+variant = "loose"
+
+[[issues]]
+file = "bundle/config/definition.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator)`).'
+count = 1
+
+[[issues]]
+file = "bundle/config/definition.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 15
+
+[[issues]]
+file = "bundle/config/definition.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator`.'
+count = 1
+
+[[issues]]
+file = "bundle/config/migrations/Version20251227000000.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Symfony\Migrations\Version20251227000000` cannot extend unknown type `AbstractMigration`'
+count = 1
+
+[[issues]]
+file = "bundle/config/services/commands.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator)`).'
+count = 1
+
+[[issues]]
+file = "bundle/config/services/commands.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "bundle/config/services/commands.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 3
+
+[[issues]]
+file = "bundle/config/services/commands.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator`.'
+count = 1
+
+[[issues]]
+file = "bundle/config/services/commands.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Symfony\Component\DependencyInjection\Loader\Configurator\service` (also tried as `service` in a broader scope).'
+count = 1
+
+[[issues]]
+file = "bundle/config/services/core.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator)`).'
+count = 1
+
+[[issues]]
+file = "bundle/config/services/core.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "bundle/config/services/core.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 5
+
+[[issues]]
+file = "bundle/config/services/core.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator`.'
+count = 1
+
+[[issues]]
+file = "bundle/config/services/core.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Symfony\Component\DependencyInjection\Loader\Configurator\service` (also tried as `service` in a broader scope).'
+count = 4
+
+[[issues]]
+file = "bundle/config/services/dbal.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator)`).'
+count = 1
+
+[[issues]]
+file = "bundle/config/services/dbal.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "bundle/config/services/dbal.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 11
+
+[[issues]]
+file = "bundle/config/services/dbal.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator`.'
+count = 1
+
+[[issues]]
+file = "bundle/config/services/dbal.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Symfony\Component\DependencyInjection\Loader\Configurator\service` (also tried as `service` in a broader scope).'
+count = 5
+
+[[issues]]
+file = "bundle/config/services/idempotency.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator)`).'
+count = 1
+
+[[issues]]
+file = "bundle/config/services/idempotency.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "bundle/config/services/idempotency.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 3
+
+[[issues]]
+file = "bundle/config/services/idempotency.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator`.'
+count = 1
+
+[[issues]]
+file = "bundle/config/services/idempotency.php"
+code = "non-existent-function"
+message = 'Could not find definition for function `Symfony\Component\DependencyInjection\Loader\Configurator\service` (also tried as `service` in a broader scope).'
+count = 1
+
+[[issues]]
+file = "bundle/src/Command/ExpirePendingTransfers.php"
+code = "non-existent-attribute-class"
+message = 'Attribute class `Symfony\Component\Console\Attribute\AsCommand` not found or could not be autoloaded.'
+count = 1
+
+[[issues]]
+file = "bundle/src/Command/ExpirePendingTransfers.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Symfony\Command\ExpirePendingTransfers` cannot extend unknown type `Command`'
+count = 1
+
+[[issues]]
+file = "bundle/src/Command/ExpirePendingTransfers.php"
+code = "unused-method"
+message = "Method `execute()` is never used."
+count = 1
+
+[[issues]]
+file = "bundle/src/Command/ExpirePendingTransfers.php"
+code = "unused-property"
+message = "Property `$ledger` is never used."
+count = 1
+
+[[issues]]
+file = "bundle/src/LedgeringBundle.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Symfony\LedgeringBundle` cannot extend unknown type `AbstractBundle`'
+count = 1
+
+[[issues]]
+file = "bundle/src/LedgeringBundle.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Symfony\LedgeringBundle` cannot implement unknown type `PrependExtensionInterface`'
+count = 1
+
+[[issues]]
+file = "bundle/src/LedgeringBundle.php"
+code = "unused-property"
+message = "Property `$extensionAlias` is never used."
+count = 1
+
+[[issues]]
+file = "bundle/tests/Command/ExpirePendingTransfersTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Symfony\Tests\Command\ExpirePendingTransfersTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "invalid-operand"
+message = "Invalid type for left operand."
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "less-specific-nested-argument-type"
+message = "Argument type mismatch for argument #1 of `array_column`: expected `array<array-key, array<string('days'), ('V.array_column() extends mixed)>|object>|list<array<string('days'), ('V.array_column() extends mixed)>|object>`, but provided type `array<array-key, mixed>` is less specific."
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "less-specific-nested-argument-type"
+message = "Argument type mismatch for argument #1 of `array_sum`: expected `array<array-key, float|int>`, but provided type `array<array-key, mixed>` is less specific."
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Castor\Ledgering\Example\PoundSterling::add`: expected `castor\ledgering\example\poundsterling`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `formatDate`: expected `Castor\Ledgering\Time\Instant`, but found `mixed`.'
+count = 5
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "mixed-array-access"
+message = "Unsafe array access on type `mixed`."
+count = 43
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 14
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 52
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "mixed-operand"
+message = "Invalid middle operand: type `mixed` cannot be reliably used in string concatenation."
+count = 33
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "mixed-operand"
+message = "Invalid right operand: type `mixed` cannot be reliably used in string concatenation."
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "possibly-false-argument"
+message = "Argument #1 of function `trim` is possibly `false`, but parameter type `string` does not accept it."
+count = 3
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "possibly-false-array-access"
+message = "Cannot perform array access on possibly `false` value."
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "possibly-null-argument"
+message = "Argument #1 of function `strtolower` is possibly `null`, but parameter type `string` does not accept it."
+count = 1
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Castor\Ledgering\Example\PoundSterling::ofPence`: expected `int`, but found `mixed`.'
+count = 16
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 17
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "mixed-operand"
+message = "Left operand in binary operation has type `mixed`."
+count = 8
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "mixed-operand"
+message = "Right operand in binary operation has type `mixed`."
+count = 8
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "mixed-property-access"
+message = "Attempting to access a property on a non-object type (`mixed`)."
+count = 46
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "possibly-false-argument"
+message = 'Argument #1 of method `Castor\Ledgering\Time\Instant::of` is possibly `false`, but parameter type `int` does not accept it.'
+count = 1
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "possibly-false-operand"
+message = "Left operand in arithmetic operation might be `false` (type `false|int`)."
+count = 1
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "possibly-null-argument"
+message = 'Argument #1 of method `Castor\Ledgering\Example\Loan\Simulator::calculateDaysSince` is possibly `null`, but parameter type `Castor\Ledgering\Time\Instant` does not accept it.'
+count = 1
+
+[[issues]]
+file = "examples/src/PoundSterling.php"
+code = "possibly-invalid-argument"
+message = 'Possible argument type mismatch for argument #1 of `Castor\Ledgering\Example\PoundSterling::__construct`: expected `non-negative-int`, but possibly received `int`.'
+count = 1
+
+[[issues]]
+file = "examples/src/Rate.php"
+code = "invalid-type-cast"
+message = "Non numeric string of type `string` implicitly cast to `float`."
+count = 1
+
+[[issues]]
+file = "src/Amount.php"
+code = "redundant-docblock-type"
+message = "Redundant docblock type for variable `$result`."
+count = 2
+
+[[issues]]
+file = "src/Storage/Dbal/AccountBalanceRepository.php"
+code = "incompatible-parameter-type"
+message = '''Parameter `$row` of `Castor\Ledgering\Storage\Dbal\AccountBalanceRepository::hydrate()` expects type `array{'account_id': string, 'credits_pending': int, 'credits_posted': int, 'debits_pending': int, 'debits_posted': int, 'sequence': int, 'timestamp_nanos': int, 'timestamp_seconds': int}` but parent `Castor\Ledgering\Storage\Dbal\Repository::hydrate()` expects type `array<string, mixed>`'''
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/AccountBalanceRepository.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Doctrine\DBAL\Connection)`).'
+count = 3
+
+[[issues]]
+file = "src/Storage/Dbal/AccountBalanceRepository.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Doctrine\DBAL\Query\QueryBuilder)`).'
+count = 2
+
+[[issues]]
+file = "src/Storage/Dbal/AccountBalanceRepository.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #2 of `Castor\Ledgering\Storage\Dbal\Repository::__construct`: expected `unknown-ref(Doctrine\DBAL\Query\QueryBuilder)`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/AccountBalanceRepository.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #3 of `Castor\Ledgering\Storage\Dbal\Repository::__construct`: expected `unknown-ref(Doctrine\DBAL\Platforms\AbstractPlatform)`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/AccountBalanceRepository.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 4
+
+[[issues]]
+file = "src/Storage/Dbal/AccountBalanceRepository.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\Connection`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/AccountBalanceRepository.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\Query\QueryBuilder`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/AccountBalanceRepository.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Doctrine\DBAL\ArrayParameterType` not found.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/AccountBalanceRepository.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Doctrine\DBAL\ParameterType` not found.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/AccountRepository.php"
+code = "incompatible-parameter-type"
+message = '''Parameter `$row` of `Castor\Ledgering\Storage\Dbal\AccountRepository::hydrate()` expects type `array{'code': int, 'credits_pending': int, 'credits_posted': int, 'debits_pending': int, 'debits_posted': int, 'external_code_primary': int, 'external_id_primary': string, 'external_id_secondary': string, 'flags': int, 'id': string, 'ledger': int, 'sequence': int, 'timestamp_nanos': int, 'timestamp_seconds': int}` but parent `Castor\Ledgering\Storage\Dbal\Repository::hydrate()` expects type `array<string, mixed>`'''
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/AccountRepository.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Doctrine\DBAL\Connection)`).'
+count = 4
+
+[[issues]]
+file = "src/Storage/Dbal/AccountRepository.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Doctrine\DBAL\Query\QueryBuilder)`).'
+count = 6
+
+[[issues]]
+file = "src/Storage/Dbal/AccountRepository.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #2 of `Castor\Ledgering\Storage\Dbal\Repository::__construct`: expected `unknown-ref(Doctrine\DBAL\Query\QueryBuilder)`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/AccountRepository.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #3 of `Castor\Ledgering\Storage\Dbal\Repository::__construct`: expected `unknown-ref(Doctrine\DBAL\Platforms\AbstractPlatform)`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/AccountRepository.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/AccountRepository.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 8
+
+[[issues]]
+file = "src/Storage/Dbal/AccountRepository.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\Connection`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/AccountRepository.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\Query\QueryBuilder`.'
+count = 3
+
+[[issues]]
+file = "src/Storage/Dbal/AccountRepository.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Doctrine\DBAL\ArrayParameterType` not found.'
+count = 3
+
+[[issues]]
+file = "src/Storage/Dbal/AccountRepository.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Doctrine\DBAL\ParameterType` not found.'
+count = 3
+
+[[issues]]
+file = "src/Storage/Dbal/Migrator.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Doctrine\DBAL\Schema\Schema)`).'
+count = 6
+
+[[issues]]
+file = "src/Storage/Dbal/Migrator.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 3
+
+[[issues]]
+file = "src/Storage/Dbal/Migrator.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 60
+
+[[issues]]
+file = "src/Storage/Dbal/Migrator.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\Schema\Schema`.'
+count = 2
+
+[[issues]]
+file = "src/Storage/Dbal/Migrator.php"
+code = "non-existent-method"
+message = 'Method `editor` does not exist on type `Doctrine\DBAL\Schema\PrimaryKeyConstraint`.'
+count = 3
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "impossible-assignment"
+message = "Invalid assignment: the right-hand side has type `never` and cannot produce a value."
+count = 2
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "invalid-clone"
+message = 'Invalid `clone` operation on non-cloneable type `unknown-ref(Doctrine\DBAL\Query\QueryBuilder)`.'
+count = 3
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Doctrine\DBAL\Query\QueryBuilder)`).'
+count = 4
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "less-specific-argument"
+message = 'Argument type mismatch for argument #1 of `Castor\Ledgering\Storage\Dbal\Repository::convertRow`: expected `array<string, mixed>`, but provided type `array<array-key, mixed>` is less specific.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Castor\Ledgering\Storage\Dbal\Repository::convertRow`: expected `array<string, mixed>`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #2 of `array_map`: expected `array<('K.array_map() extends array-key), array<array-key, mixed>>`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 5
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 6
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\Connection`.'
+count = 2
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\Platforms\AbstractPlatform`.'
+count = 2
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\Query\QueryBuilder`.'
+count = 3
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "non-existent-method"
+message = 'Method `getType` does not exist on type `Doctrine\DBAL\Types\Type`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/TransactionalLedger.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Doctrine\DBAL\Connection)`).'
+count = 3
+
+[[issues]]
+file = "src/Storage/Dbal/TransactionalLedger.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/TransactionalLedger.php"
+code = "no-valid-catch-type-found"
+message = "None of the types specified in the `catch` declaration are valid catchable exceptions."
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/TransactionalLedger.php"
+code = "non-existent-catch-type"
+message = 'Attempting to catch an undefined class or interface: `Doctrine\DBAL\Exception`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/TransactionalLedger.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\Connection`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/TransactionalLedger.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\TransactionIsolationLevel`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/TransactionalLedger.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Doctrine\DBAL\TransactionIsolationLevel` not found.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/TransferRepository.php"
+code = "incompatible-parameter-type"
+message = '''Parameter `$row` of `Castor\Ledgering\Storage\Dbal\TransferRepository::hydrate()` expects type `array{'amount': int, 'code': int, 'credit_account_id': string, 'debit_account_id': string, 'external_code_primary': int, 'external_id_primary': string, 'external_id_secondary': string, 'flags': int, 'id': string, 'ledger': int, 'pending_id': string, 'sequence': int, 'timeout_seconds': int, 'timestamp_nanos': int, 'timestamp_seconds': int}` but parent `Castor\Ledgering\Storage\Dbal\Repository::hydrate()` expects type `array<string, mixed>`'''
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/TransferRepository.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Doctrine\DBAL\Connection)`).'
+count = 3
+
+[[issues]]
+file = "src/Storage/Dbal/TransferRepository.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Doctrine\DBAL\Query\QueryBuilder)`).'
+count = 16
+
+[[issues]]
+file = "src/Storage/Dbal/TransferRepository.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #2 of `Castor\Ledgering\Storage\Dbal\Repository::__construct`: expected `unknown-ref(Doctrine\DBAL\Query\QueryBuilder)`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/TransferRepository.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #3 of `Castor\Ledgering\Storage\Dbal\Repository::__construct`: expected `unknown-ref(Doctrine\DBAL\Platforms\AbstractPlatform)`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/TransferRepository.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 18
+
+[[issues]]
+file = "src/Storage/Dbal/TransferRepository.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\Connection`.'
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/TransferRepository.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\Query\QueryBuilder`.'
+count = 7
+
+[[issues]]
+file = "src/Storage/Dbal/TransferRepository.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Doctrine\DBAL\ArrayParameterType` not found.'
+count = 6
+
+[[issues]]
+file = "src/Storage/Dbal/TransferRepository.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Doctrine\DBAL\ParameterType` not found.'
+count = 10
+
+[[issues]]
+file = "tests/AccountBalanceTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\AccountBalanceTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/AccountFlagsTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\AccountFlagsTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/AmountTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\AmountTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/BalanceTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\BalanceTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/CodeTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\CodeTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/CreateAccountTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\CreateAccountTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/CreateTransferTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\CreateTransferTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/ExpirePendingTransfersTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\ExpirePendingTransfersTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/IdempotentLedgerTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\IdempotentLedgerTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/IdempotentLedgerTest.php"
+code = "unused-method"
+message = "Method `setup()` is never used."
+count = 1
+
+[[issues]]
+file = "tests/IdempotentLedgerTest.php"
+code = "unused-property"
+message = "Property `$accountBalances` is never used."
+count = 1
+
+[[issues]]
+file = "tests/IdempotentLedgerTest.php"
+code = "unused-property"
+message = "Property `$accounts` is never used."
+count = 1
+
+[[issues]]
+file = "tests/IdempotentLedgerTest.php"
+code = "unused-property"
+message = "Property `$ledger` is never used."
+count = 1
+
+[[issues]]
+file = "tests/IdempotentLedgerTest.php"
+code = "unused-property"
+message = "Property `$standardLedger` is never used."
+count = 1
+
+[[issues]]
+file = "tests/IdempotentLedgerTest.php"
+code = "unused-property"
+message = "Property `$transfers` is never used."
+count = 1
+
+[[issues]]
+file = "tests/IdentifierTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\IdentifierTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "impossible-assignment"
+message = "Invalid assignment: the right-hand side has type `never` and cannot produce a value."
+count = 2
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "impossible-null-type-comparison"
+message = "Impossible condition: variable `$uri` (type `string`) can never be `null`."
+count = 1
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "impossible-null-type-comparison"
+message = "Impossible condition: variable `$uri` (type `string`) will always be `null`."
+count = 1
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "invalid-iterator"
+message = "The expression provided to `foreach` is not iterable. It resolved to type `mixed`, which is not iterable."
+count = 1
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "invalid-method-access"
+message = 'Attempting to access a method on a non-object type (`unknown-ref(Doctrine\DBAL\Connection)`).'
+count = 7
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 5
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "mixed-method-access"
+message = "Attempting to access a method on a non-object type (`mixed`)."
+count = 4
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "mixed-property-type-coercion"
+message = "Mixed property type coercion"
+count = 1
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "no-value"
+message = 'Argument #1 passed to method `Castor\Ledgering\Storage\Dbal\Migrator::up` has type `never`, meaning it cannot produce a value.'
+count = 1
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "non-existent-class"
+message = 'Class `Doctrine\DBAL\Schema\Schema` not found.'
+count = 1
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "non-existent-class"
+message = 'Class `Doctrine\DBAL\Tools\DsnParser` not found.'
+count = 1
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "non-existent-class-like"
+message = 'Cannot find class, interface, enum, or type alias `Doctrine\DBAL\Connection`.'
+count = 2
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "non-existent-method"
+message = 'Method `getConnection` does not exist on type `Doctrine\DBAL\DriverManager`.'
+count = 1
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "redundant-comparison"
+message = "Redundant `===` comparison: left-hand side is never identical to right-hand side."
+count = 1
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "redundant-logical-operation"
+message = "Redundant `||` operation: left operand is evaluated and right operand is always falsy."
+count = 1
+
+[[issues]]
+file = "tests/LoanLifecycleTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\LoanLifecycleTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/LoanLifecycleTest.php"
+code = "unused-method"
+message = "Method `setup()` is never used."
+count = 1
+
+[[issues]]
+file = "tests/LoanLifecycleTest.php"
+code = "unused-property"
+message = "Property `$accounts` is never used."
+count = 1
+
+[[issues]]
+file = "tests/LoanLifecycleTest.php"
+code = "unused-property"
+message = "Property `$ledger` is never used."
+count = 1
+
+[[issues]]
+file = "tests/LoanLifecycleTest.php"
+code = "unused-property"
+message = "Property `$transfers` is never used."
+count = 1
+
+[[issues]]
+file = "tests/PHPUnit/DatabaseExtension.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\PHPUnit\DatabaseExtension` cannot implement unknown type `Extension`'
+count = 1
+
+[[issues]]
+file = "tests/PHPUnit/DatabaseExtension.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\PHPUnit\DatabasePreparationSubscriber` cannot implement unknown type `PreparationStartedSubscriber`'
+count = 1
+
+[[issues]]
+file = "tests/PHPUnit/DatabaseExtension.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\PHPUnit\DatabaseShutdownSubscriber` cannot implement unknown type `ExecutionFinishedSubscriber`'
+count = 1
+
+[[issues]]
+file = "tests/PHPUnit/DatabaseExtension.php"
+code = "unused-method"
+message = "Method `isdbtest()` is never used."
+count = 1
+
+[[issues]]
+file = "tests/PHPUnit/DatabaseExtension.php"
+code = "unused-property"
+message = "Property `$initialized` is never used."
+count = 1
+
+[[issues]]
+file = "tests/StandardLedgerTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\StandardLedgerTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/StandardLedgerTest.php"
+code = "unused-method"
+message = "Method `setup()` is never used."
+count = 1
+
+[[issues]]
+file = "tests/StandardLedgerTest.php"
+code = "unused-property"
+message = "Property `$accountBalances` is never used."
+count = 1
+
+[[issues]]
+file = "tests/StandardLedgerTest.php"
+code = "unused-property"
+message = "Property `$accounts` is never used."
+count = 1
+
+[[issues]]
+file = "tests/StandardLedgerTest.php"
+code = "unused-property"
+message = "Property `$clock` is never used."
+count = 1
+
+[[issues]]
+file = "tests/StandardLedgerTest.php"
+code = "unused-property"
+message = "Property `$ledger` is never used."
+count = 1
+
+[[issues]]
+file = "tests/StandardLedgerTest.php"
+code = "unused-property"
+message = "Property `$transfers` is never used."
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/AccountBalanceRepositoryTest.php"
+code = "non-existent-attribute-class"
+message = 'Attribute class `PHPUnit\Framework\Attributes\Group` not found or could not be autoloaded.'
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/AccountBalanceRepositoryTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\Storage\Dbal\AccountBalanceRepositoryTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/AccountRepositoryTest.php"
+code = "non-existent-attribute-class"
+message = 'Attribute class `PHPUnit\Framework\Attributes\Group` not found or could not be autoloaded.'
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/AccountRepositoryTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\Storage\Dbal\AccountRepositoryTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/MigratorTest.php"
+code = "non-existent-attribute-class"
+message = 'Attribute class `PHPUnit\Framework\Attributes\Group` not found or could not be autoloaded.'
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/MigratorTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\Storage\Dbal\MigratorTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/TransactionalLedgerTest.php"
+code = "non-existent-attribute-class"
+message = 'Attribute class `PHPUnit\Framework\Attributes\Group` not found or could not be autoloaded.'
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/TransactionalLedgerTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\Storage\Dbal\TransactionalLedgerTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/TransferRepositoryTest.php"
+code = "non-existent-attribute-class"
+message = 'Attribute class `PHPUnit\Framework\Attributes\Group` not found or could not be autoloaded.'
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/TransferRepositoryTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\Storage\Dbal\TransferRepositoryTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/TransferRepositoryTest.php"
+code = "unused-method"
+message = "Method `createtransfer()` is never used."
+count = 1
+
+[[issues]]
+file = "tests/Time/DurationTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\Time\DurationTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/Time/InstantTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\Time\InstantTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/TimeOrderedMonotonicTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\TimeOrderedMonotonicTest` cannot extend unknown type `TestCase`'
+count = 1
+
+[[issues]]
+file = "tests/TransferFlagsTest.php"
+code = "non-existent-class-like"
+message = 'Class `Castor\Ledgering\TransferFlagsTest` cannot extend unknown type `TestCase`'
+count = 1

@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering;
 
 use PHPUnit\Framework\Attributes\Test;
@@ -111,9 +99,7 @@ final class TransferFlagsTest extends TestCase
 	#[Test]
 	public function it_adds_and_removes_flags(): void
 	{
-		$flags = TransferFlags::none()
-			->with(TransferFlags::PENDING)
-			->with(TransferFlags::BALANCING_DEBIT);
+		$flags = TransferFlags::none()->with(TransferFlags::PENDING)->with(TransferFlags::BALANCING_DEBIT);
 
 		self::assertTrue($flags->isPending());
 		self::assertTrue($flags->isBalancingDebit());

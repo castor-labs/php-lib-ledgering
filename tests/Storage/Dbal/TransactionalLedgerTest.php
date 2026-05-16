@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering\Storage\Dbal;
 
 use Castor\Ledgering\Amount;
@@ -43,13 +31,7 @@ final class TransactionalLedgerTest extends TestCase
 
 		$accountId = Identifier::random();
 
-		$ledger->execute(
-			CreateAccount::with(
-				id: $accountId,
-				ledger: 1,
-				code: 100,
-			),
-		);
+		$ledger->execute(CreateAccount::with(id: $accountId, ledger: 1, code: 100));
 
 		// Verify account was created
 		$account = $accounts->ofId($accountId)->one();
@@ -71,21 +53,13 @@ final class TransactionalLedgerTest extends TestCase
 
 		try {
 			$ledger->execute(
-				CreateAccount::with(
-					id: $accountId,
-					ledger: 1,
-					code: 100,
-				),
+				CreateAccount::with(id: $accountId, ledger: 1, code: 100),
 				// This will fail because we're trying to create the same account twice
-				CreateAccount::with(
-					id: $accountId,
-					ledger: 1,
-					code: 100,
-				),
+				CreateAccount::with(id: $accountId, ledger: 1, code: 100),
 			);
 
 			self::fail('Expected ConstraintViolation to be thrown');
-		} catch (ConstraintViolation $e) {
+		} catch (ConstraintViolation) {
 			// Expected exception
 		}
 

@@ -23,10 +23,10 @@ return static function (ContainerConfigurator $container): void {
 	$services = $container->services();
 
 	// Idempotent Ledger (decorates the standard ledger with high priority)
-	$services->set('castor.ledgering.idempotent_ledger', IdempotentLedger::class)
+	$services
+		->set('castor.ledgering.idempotent_ledger', IdempotentLedger::class)
 		->decorate('castor.ledgering.ledger', priority: 100)
 		->args([
 			service('.inner'),
 		]);
 };
-

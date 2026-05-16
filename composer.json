@@ -40,43 +40,61 @@
     }
   ],
   "require": {
-    "php": ">=8.3",
     "castor/functions": "^1.0",
     "doctrine/dbal": "^4.2",
     "nikic/php-parser": "^5.4",
-    "symfony/http-kernel": "^7.0",
-    "symfony/dependency-injection": "^7.0"
+    "php": ">=8.3",
+    "symfony/dependency-injection": "^7.0",
+    "symfony/http-kernel": "^7.0"
   },
   "require-dev": {
     "ext-decimal": "*",
-    "phpunit/phpunit": "^10.5",
-    "friendsofphp/php-cs-fixer": "^3.69",
-    "vimeo/psalm": "^6.8",
-    "castor/code-style": "^1.0",
+    "brick/date-time": "^0.9.0",
+    "carthage-software/mago": "^1.27",
     "doctrine/migrations": "^3.0",
-    "symfony/config": "^7.4",
-    "brick/date-time": "^0.9.0"
+    "phpunit/phpunit": "^10.5",
+    "rector/rector": "^2.4",
+    "symfony/config": "^7.4"
   },
   "scripts": {
     "pr": [
-      "@fmt",
-      "@psalm",
+      "@rector",
+      "@mago:fmt",
+      "@mago:lint",
+      "@mago:analyze",
       "@test"
     ],
     "ci": [
-      "@fmt:check",
-      "@psalm:gh",
+      "@rector:check",
+      "@mago:fmt:check",
+      "@mago:lint",
+      "@mago:analyze",
       "@test"
     ],
-    "fmt": "php-cs-fixer fix --diff --ansi",
-    "fmt:check": "php-cs-fixer fix --dry-run --diff --ansi",
+    "mago": [
+      "@mago:fmt",
+      "@mago:lint",
+      "@mago:analyze"
+    ],
+    "rector": "rector process",
+    "rector:check": "rector process --dry-run",
+    "mago:fmt": "mago fmt",
+    "mago:fmt:check": "mago fmt --dry-run",
+    "mago:analyze": "mago analyze --sort",
+    "mago:lint": "mago lint --sort",
+    "mago:lint:baseline:fix": "mago lint --sort --generate-baseline --backup-baseline",
+    "mago:lint:baseline:check": "mago lint --sort --verify-baseline",
+    "mago:analyze:baseline:check": "mago analyze --sort --verify-baseline",
+    "mago:analyze:baseline:fix": "mago analyze --sort --generate-baseline --backup-baseline",
     "test": "phpunit --colors",
-    "test:unit": "phpunit --colors --exclude-group=integration --exclude-group=e2e",
+    "test:unit": "phpunit --colors --exclude-group=integration,e2e,dbal,bundle",
     "test:e2e": "phpunit --colors --group=e2e",
-    "test:integration": "phpunit --colors --group=integration",
-    "psalm": "psalm --no-cache --threads=5 --use-baseline",
-    "psalm:gh": "psalm --no-cache --threads=5 --long-progress --output-format=github --use-baseline",
-    "psalm:fix": "psalm --update-baseline",
-    "psalm:allow": "psalm --set-baseline=psalm-baseline.xml"
+    "test:integration": "phpunit --colors --group=integration,dbal,bundle"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "carthage-software/mago": true
+    }
   }
 }

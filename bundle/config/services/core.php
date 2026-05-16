@@ -30,15 +30,13 @@ return static function (ContainerConfigurator $container): void {
 	$services->alias(Clock::class, 'castor.ledgering.clock');
 
 	// Standard Ledger (decorated by TransactionalLedger in dbal.php)
-	$services->set('castor.ledgering.ledger', StandardLedger::class)
-		->args([
-			service('castor.ledgering.dbal.account_repository'),
-			service('castor.ledgering.dbal.transfer_repository'),
-			service('castor.ledgering.dbal.account_balance_repository'),
-			service('castor.ledgering.clock'),
-		]);
+	$services->set('castor.ledgering.ledger', StandardLedger::class)->args([
+		service('castor.ledgering.dbal.account_repository'),
+		service('castor.ledgering.dbal.transfer_repository'),
+		service('castor.ledgering.dbal.account_balance_repository'),
+		service('castor.ledgering.clock'),
+	]);
 
 	// Alias for the Ledger interface - points to the transactional decorator
 	$services->alias(Ledger::class, 'castor.ledgering.dbal.transactional_ledger');
 };
-

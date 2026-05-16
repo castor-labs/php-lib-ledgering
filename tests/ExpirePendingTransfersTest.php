@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering;
 
 use Castor\Ledgering\Storage\InMemory\AccountBalanceCollection;
@@ -68,18 +56,16 @@ final class ExpirePendingTransfersTest extends TestCase
 		);
 
 		// Create pending transfer with 60 second timeout at t=1000
-		$ledger->execute(
-			CreateTransfer::with(
-				id: $pendingId,
-				debitAccountId: $accountOne,
-				creditAccountId: $accountTwo,
-				amount: 1000,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::PENDING,
-				timeout: Duration::ofSeconds(60),
-			),
-		);
+		$ledger->execute(CreateTransfer::with(
+			id: $pendingId,
+			debitAccountId: $accountOne,
+			creditAccountId: $accountTwo,
+			amount: 1000,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::PENDING,
+			timeout: Duration::ofSeconds(60),
+		));
 
 		// Verify pending balances
 		$acc1 = $accounts->ofId($accountOne)->one();
@@ -88,9 +74,7 @@ final class ExpirePendingTransfersTest extends TestCase
 		self::assertSame(1000, $acc2->balance->creditsPending->value);
 
 		// Expire transfers at t=1061 (1 second after timeout)
-		$ledger->execute(
-			ExpirePendingTransfers::asOf(Instant::of(1061)),
-		);
+		$ledger->execute(ExpirePendingTransfers::asOf(Instant::of(1061)));
 
 		// Verify pending balances are cleared
 		$acc1 = $accounts->ofId($accountOne)->one();
@@ -130,9 +114,7 @@ final class ExpirePendingTransfersTest extends TestCase
 		);
 
 		// Try to expire at t=1059 (still within timeout)
-		$ledger->execute(
-			ExpirePendingTransfers::asOf(Instant::of(1059)),
-		);
+		$ledger->execute(ExpirePendingTransfers::asOf(Instant::of(1059)));
 
 		// Verify pending balances are still there
 		$acc1 = $accounts->ofId($accountOne)->one();
@@ -172,9 +154,7 @@ final class ExpirePendingTransfersTest extends TestCase
 		);
 
 		// Try to expire at a much later time
-		$ledger->execute(
-			ExpirePendingTransfers::asOf(Instant::of(999999)),
-		);
+		$ledger->execute(ExpirePendingTransfers::asOf(Instant::of(999999)));
 
 		// Verify pending balances are still there (zero timeout means never expires)
 		$acc1 = $accounts->ofId($accountOne)->one();
@@ -220,17 +200,15 @@ final class ExpirePendingTransfersTest extends TestCase
 		$this->expectException(ConstraintViolation::class);
 		$this->expectExceptionCode(ErrorCode::PendingTransferExpired->value);
 
-		$ledger->execute(
-			CreateTransfer::with(
-				id: Identifier::random(),
-				debitAccountId: $accountOne,
-				creditAccountId: $accountTwo,
-				amount: 0,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::POST_PENDING,
-				pendingId: $pendingId,
-			),
-		);
+		$ledger->execute(CreateTransfer::with(
+			id: Identifier::random(),
+			debitAccountId: $accountOne,
+			creditAccountId: $accountTwo,
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::POST_PENDING,
+			pendingId: $pendingId,
+		));
 	}
 }

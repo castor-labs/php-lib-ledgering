@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering;
 
 use Castor\Ledgering\Storage\InMemory\AccountBalanceCollection;
@@ -48,11 +36,7 @@ final class StandardLedgerTest extends TestCase
 	#[Test]
 	public function it_creates_account(): void
 	{
-		$command = CreateAccount::with(
-			id: TestIdentifiers::accountOne(),
-			ledger: 1,
-			code: 100,
-		);
+		$command = CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100);
 
 		$this->ledger->execute($command);
 
@@ -70,11 +54,7 @@ final class StandardLedgerTest extends TestCase
 	#[Test]
 	public function it_prevents_duplicate_account_creation(): void
 	{
-		$command = CreateAccount::with(
-			id: TestIdentifiers::accountOne(),
-			ledger: 1,
-			code: 100,
-		);
+		$command = CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100);
 
 		$this->ledger->execute($command);
 
@@ -153,9 +133,7 @@ final class StandardLedgerTest extends TestCase
 	#[Test]
 	public function it_rejects_transfer_with_same_debit_and_credit_account(): void
 	{
-		$this->ledger->execute(
-			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
-		);
+		$this->ledger->execute(CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100));
 
 		$command = CreateTransfer::with(
 			id: TestIdentifiers::transferOne(),
@@ -198,9 +176,7 @@ final class StandardLedgerTest extends TestCase
 	#[Test]
 	public function it_rejects_transfer_when_debit_account_not_found(): void
 	{
-		$this->ledger->execute(
-			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 200),
-		);
+		$this->ledger->execute(CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 200));
 
 		$command = CreateTransfer::with(
 			id: TestIdentifiers::transferOne(),
@@ -220,9 +196,7 @@ final class StandardLedgerTest extends TestCase
 	#[Test]
 	public function it_rejects_transfer_when_credit_account_not_found(): void
 	{
-		$this->ledger->execute(
-			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
-		);
+		$this->ledger->execute(CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100));
 
 		$command = CreateTransfer::with(
 			id: TestIdentifiers::transferOne(),
@@ -273,11 +247,7 @@ final class StandardLedgerTest extends TestCase
 				code: 100,
 				flags: AccountFlags::DEBITS_MUST_NOT_EXCEED_CREDITS,
 			),
-			CreateAccount::with(
-				id: TestIdentifiers::accountTwo(),
-				ledger: 1,
-				code: 200,
-			),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
 		);
 
 		// The first transfer should fail (no credits yet)
@@ -311,28 +281,24 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		// Credit the account first
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountTwo(),
-				creditAccountId: TestIdentifiers::accountOne(),
-				amount: Amount::of(2000),
-				ledger: 1,
-				code: 1,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountTwo(),
+			creditAccountId: TestIdentifiers::accountOne(),
+			amount: Amount::of(2000),
+			ledger: 1,
+			code: 1,
+		));
 
 		// Now debit should work (up to 2000)
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferTwo(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: Amount::of(1000),
-				ledger: 1,
-				code: 1,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferTwo(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: Amount::of(1000),
+			ledger: 1,
+			code: 1,
+		));
 
 		$account = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
 		self::assertSame(2000, $account->balance->creditsPosted->value);
@@ -350,11 +316,7 @@ final class StandardLedgerTest extends TestCase
 				code: 100,
 				flags: AccountFlags::CREDITS_MUST_NOT_EXCEED_DEBITS,
 			),
-			CreateAccount::with(
-				id: TestIdentifiers::accountTwo(),
-				ledger: 1,
-				code: 200,
-			),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
 		);
 
 		// First transfer should fail (no debits yet)
@@ -377,17 +339,8 @@ final class StandardLedgerTest extends TestCase
 	public function it_rejects_transfers_from_closed_accounts(): void
 	{
 		$this->ledger->execute(
-			CreateAccount::with(
-				id: TestIdentifiers::accountOne(),
-				ledger: 1,
-				code: 100,
-				flags: AccountFlags::CLOSED,
-			),
-			CreateAccount::with(
-				id: TestIdentifiers::accountTwo(),
-				ledger: 1,
-				code: 200,
-			),
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100, flags: AccountFlags::CLOSED),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
 		);
 
 		$command = CreateTransfer::with(
@@ -409,17 +362,8 @@ final class StandardLedgerTest extends TestCase
 	public function it_rejects_transfers_to_closed_accounts(): void
 	{
 		$this->ledger->execute(
-			CreateAccount::with(
-				id: TestIdentifiers::accountOne(),
-				ledger: 1,
-				code: 100,
-			),
-			CreateAccount::with(
-				id: TestIdentifiers::accountTwo(),
-				ledger: 1,
-				code: 200,
-				flags: AccountFlags::CLOSED,
-			),
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200, flags: AccountFlags::CLOSED),
 		);
 
 		$command = CreateTransfer::with(
@@ -441,30 +385,19 @@ final class StandardLedgerTest extends TestCase
 	public function it_records_balance_history_when_flag_is_set(): void
 	{
 		$this->ledger->execute(
-			CreateAccount::with(
-				id: TestIdentifiers::accountOne(),
-				ledger: 1,
-				code: 100,
-				flags: AccountFlags::HISTORY,
-			),
-			CreateAccount::with(
-				id: TestIdentifiers::accountTwo(),
-				ledger: 1,
-				code: 200,
-			),
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100, flags: AccountFlags::HISTORY),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
 		);
 
 		// Make a transfer
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 1000,
-				ledger: 1,
-				code: 1,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 1000,
+			ledger: 1,
+			code: 1,
+		));
 
 		// Check balance history was recorded
 		$history = $this->accountBalances->ofAccountId(TestIdentifiers::accountOne())->toList();
@@ -481,17 +414,15 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		// Create pending transfer
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::pendingOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 1000,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::pendingOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 1000,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::PENDING,
+		));
 
 		// Check balances - should be in pending, not posted
 		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
@@ -517,31 +448,27 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		// Create pending transfer
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::pendingOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 1000,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::pendingOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 1000,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::PENDING,
+		));
 
 		// Post the pending transfer
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0, // Zero posts the entire pending amount
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::POST_PENDING,
-				pendingId: TestIdentifiers::pendingOne(),
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0, // Zero posts the entire pending amount
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::POST_PENDING,
+			pendingId: TestIdentifiers::pendingOne(),
+		));
 
 		// Check balances - should be moved from pending to posted
 		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
@@ -562,31 +489,27 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		// Create pending transfer for 1000
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::pendingOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 1000,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::pendingOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 1000,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::PENDING,
+		));
 
 		// Post only 600 of the pending transfer (partial posting)
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 600,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::POST_PENDING,
-				pendingId: TestIdentifiers::pendingOne(),
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 600,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::POST_PENDING,
+			pendingId: TestIdentifiers::pendingOne(),
+		));
 
 		// Check balances - 600 should be posted, 400 should remain pending
 		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
@@ -611,17 +534,15 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		// Create pending transfer for 1000
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::pendingOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 1000,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::pendingOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 1000,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::PENDING,
+		));
 
 		// Try to post 1500 (more than pending amount)
 		$command = CreateTransfer::with(
@@ -650,31 +571,27 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		// Create pending transfer
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::pendingOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 1000,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::pendingOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 1000,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::PENDING,
+		));
 
 		// Void the pending transfer
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::VOID_PENDING,
-				pendingId: TestIdentifiers::pendingOne(),
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::VOID_PENDING,
+			pendingId: TestIdentifiers::pendingOne(),
+		));
 
 		// Check balances - should be back to zero
 		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
@@ -743,30 +660,26 @@ final class StandardLedgerTest extends TestCase
 			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
 		);
 
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::pendingOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 1000,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::pendingOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 1000,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::PENDING,
+		));
 
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::POST_PENDING,
-				pendingId: TestIdentifiers::pendingOne(),
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::POST_PENDING,
+			pendingId: TestIdentifiers::pendingOne(),
+		));
 
 		$command = CreateTransfer::with(
 			id: TestIdentifiers::transferTwo(),
@@ -793,30 +706,26 @@ final class StandardLedgerTest extends TestCase
 			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
 		);
 
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::pendingOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 1000,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::pendingOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 1000,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::PENDING,
+		));
 
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::VOID_PENDING,
-				pendingId: TestIdentifiers::pendingOne(),
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::VOID_PENDING,
+			pendingId: TestIdentifiers::pendingOne(),
+		));
 
 		$command = CreateTransfer::with(
 			id: TestIdentifiers::transferTwo(),
@@ -843,30 +752,26 @@ final class StandardLedgerTest extends TestCase
 			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
 		);
 
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::pendingOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 1000,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::pendingOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 1000,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::PENDING,
+		));
 
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::POST_PENDING,
-				pendingId: TestIdentifiers::pendingOne(),
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::POST_PENDING,
+			pendingId: TestIdentifiers::pendingOne(),
+		));
 
 		$command = CreateTransfer::with(
 			id: TestIdentifiers::transferTwo(),
@@ -893,30 +798,26 @@ final class StandardLedgerTest extends TestCase
 			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200),
 		);
 
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::pendingOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 1000,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::pendingOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 1000,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::PENDING,
+		));
 
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::VOID_PENDING,
-				pendingId: TestIdentifiers::pendingOne(),
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::VOID_PENDING,
+			pendingId: TestIdentifiers::pendingOne(),
+		));
 
 		$command = CreateTransfer::with(
 			id: TestIdentifiers::transferTwo(),
@@ -944,29 +845,25 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		// Credit the debit account with 1500
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountTwo(),
-				creditAccountId: TestIdentifiers::accountOne(),
-				amount: 1500,
-				ledger: 1,
-				code: 1,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountTwo(),
+			creditAccountId: TestIdentifiers::accountOne(),
+			amount: 1500,
+			ledger: 1,
+			code: 1,
+		));
 
 		// Balancing debit should calculate amount to zero out the account
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferTwo(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::BALANCING_DEBIT,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferTwo(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::BALANCING_DEBIT,
+		));
 
 		$transferTwo = $this->transfers->ofId(TestIdentifiers::transferTwo())->one();
 
@@ -987,29 +884,25 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		// Debit the credit account with 2000
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountTwo(),
-				creditAccountId: TestIdentifiers::accountOne(),
-				amount: 2000,
-				ledger: 1,
-				code: 1,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountTwo(),
+			creditAccountId: TestIdentifiers::accountOne(),
+			amount: 2000,
+			ledger: 1,
+			code: 1,
+		));
 
 		// Balancing credit should calculate amount to zero out the account
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferTwo(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::BALANCING_CREDIT,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferTwo(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::BALANCING_CREDIT,
+		));
 
 		$transfer = $this->transfers->ofId(TestIdentifiers::transferTwo())->one();
 
@@ -1030,29 +923,25 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		// Credit the debit account with 3000
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountTwo(),
-				creditAccountId: TestIdentifiers::accountOne(),
-				amount: 3000,
-				ledger: 1,
-				code: 1,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountTwo(),
+			creditAccountId: TestIdentifiers::accountOne(),
+			amount: 3000,
+			ledger: 1,
+			code: 1,
+		));
 
 		// Closing debit should transfer entire balance
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferTwo(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::CLOSING_DEBIT | TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferTwo(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::CLOSING_DEBIT | TransferFlags::PENDING,
+		));
 
 		$transfer = $this->transfers->ofId(TestIdentifiers::transferTwo())->one();
 
@@ -1071,31 +960,19 @@ final class StandardLedgerTest extends TestCase
 	public function it_ensures_transfer_and_balance_history_share_same_timestamp(): void
 	{
 		$this->ledger->execute(
-			CreateAccount::with(
-				id: TestIdentifiers::accountOne(),
-				ledger: 1,
-				code: 100,
-				flags: AccountFlags::HISTORY,
-			),
-			CreateAccount::with(
-				id: TestIdentifiers::accountTwo(),
-				ledger: 1,
-				code: 200,
-				flags: AccountFlags::HISTORY,
-			),
+			CreateAccount::with(id: TestIdentifiers::accountOne(), ledger: 1, code: 100, flags: AccountFlags::HISTORY),
+			CreateAccount::with(id: TestIdentifiers::accountTwo(), ledger: 1, code: 200, flags: AccountFlags::HISTORY),
 		);
 
 		// Create transfer
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 1000,
-				ledger: 1,
-				code: 1,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 1000,
+			ledger: 1,
+			code: 1,
+		));
 
 		// Get balance history
 		$debitHistory = $this->accountBalances->ofAccountId(TestIdentifiers::accountOne())->one();
@@ -1147,47 +1024,41 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		// Credit the debit account with 3000
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountTwo(),
-				creditAccountId: TestIdentifiers::accountOne(),
-				amount: 3000,
-				ledger: 1,
-				code: 1,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountTwo(),
+			creditAccountId: TestIdentifiers::accountOne(),
+			amount: 3000,
+			ledger: 1,
+			code: 1,
+		));
 
 		// Create a closing debit transfer (pending)
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::pendingOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::CLOSING_DEBIT | TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::pendingOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::CLOSING_DEBIT | TransferFlags::PENDING,
+		));
 
 		// Account should NOT be closed yet (transfer is still pending)
 		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
 		self::assertFalse($debitAccount->flags->isClosed());
 
 		// Post the pending transfer
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferTwo(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				pendingId: TestIdentifiers::pendingOne(),
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::POST_PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferTwo(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			pendingId: TestIdentifiers::pendingOne(),
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::POST_PENDING,
+		));
 
 		// Account should now be closed
 		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
@@ -1203,47 +1074,41 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		// Credit the debit account with 3000
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountTwo(),
-				creditAccountId: TestIdentifiers::accountOne(),
-				amount: 3000,
-				ledger: 1,
-				code: 1,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountTwo(),
+			creditAccountId: TestIdentifiers::accountOne(),
+			amount: 3000,
+			ledger: 1,
+			code: 1,
+		));
 
 		// Create a closing debit transfer (pending)
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::pendingOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::CLOSING_DEBIT | TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::pendingOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::CLOSING_DEBIT | TransferFlags::PENDING,
+		));
 
 		// Account should NOT be closed yet (transfer is still pending)
 		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
 		self::assertFalse($debitAccount->flags->isClosed());
 
 		// Post the pending transfer to close the account
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferTwo(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				pendingId: TestIdentifiers::pendingOne(),
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::POST_PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferTwo(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			pendingId: TestIdentifiers::pendingOne(),
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::POST_PENDING,
+		));
 
 		// Verify account is closed
 		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
@@ -1259,47 +1124,41 @@ final class StandardLedgerTest extends TestCase
 		);
 
 		// Credit the debit account with 3000
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferOne(),
-				debitAccountId: TestIdentifiers::accountTwo(),
-				creditAccountId: TestIdentifiers::accountOne(),
-				amount: 3000,
-				ledger: 1,
-				code: 1,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferOne(),
+			debitAccountId: TestIdentifiers::accountTwo(),
+			creditAccountId: TestIdentifiers::accountOne(),
+			amount: 3000,
+			ledger: 1,
+			code: 1,
+		));
 
 		// Create a closing debit transfer (pending)
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::pendingOne(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::CLOSING_DEBIT | TransferFlags::PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::pendingOne(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::CLOSING_DEBIT | TransferFlags::PENDING,
+		));
 
 		// Account should NOT be closed yet (transfer is still pending)
 		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();
 		self::assertFalse($debitAccount->flags->isClosed());
 
 		// Void the pending transfer (before posting)
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: TestIdentifiers::transferTwo(),
-				debitAccountId: TestIdentifiers::accountOne(),
-				creditAccountId: TestIdentifiers::accountTwo(),
-				amount: 0,
-				pendingId: TestIdentifiers::pendingOne(),
-				ledger: 1,
-				code: 1,
-				flags: TransferFlags::VOID_PENDING,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: TestIdentifiers::transferTwo(),
+			debitAccountId: TestIdentifiers::accountOne(),
+			creditAccountId: TestIdentifiers::accountTwo(),
+			amount: 0,
+			pendingId: TestIdentifiers::pendingOne(),
+			ledger: 1,
+			code: 1,
+			flags: TransferFlags::VOID_PENDING,
+		));
 
 		// Account should still NOT be closed (voiding prevents closing)
 		$debitAccount = $this->accounts->ofId(TestIdentifiers::accountOne())->one();

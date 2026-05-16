@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Symfony\Command;
 
 use Castor\Ledgering\ExpirePendingTransfers as ExpirePendingTransfersCommand;
@@ -56,18 +44,13 @@ final class ExpirePendingTransfers extends Command
 
 		try {
 			// Execute the expire command using the current time
-			$this->ledger->execute(
-				ExpirePendingTransfersCommand::now(),
-			);
+			$this->ledger->execute(ExpirePendingTransfersCommand::now());
 
 			$io->success('Successfully expired pending transfers');
 
 			return Command::SUCCESS;
 		} catch (\Throwable $e) {
-			$io->error(\sprintf(
-				'Failed to expire pending transfers: %s',
-				$e->getMessage(),
-			));
+			$io->error(\sprintf('Failed to expire pending transfers: %s', $e->getMessage()));
 
 			if ($output->isVerbose()) {
 				$io->block($e->getTraceAsString(), 'TRACE', 'fg=red', ' ', true);
@@ -77,4 +60,3 @@ final class ExpirePendingTransfers extends Command
 		}
 	}
 }
-
