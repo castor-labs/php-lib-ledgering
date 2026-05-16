@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b48e72b07fdc044ce189b0a83c976d0c",
+    "content-hash": "370db3f0d0954013f8d4612e89415855",
     "packages": [
         {
             "name": "castor/functions",
