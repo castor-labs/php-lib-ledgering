@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering;
 
 use Random\Randomizer;
@@ -23,7 +11,7 @@ use Random\Randomizer;
  *
  * Can be created from bytes or hexadecimal string.
  */
-final readonly class Identifier
+final readonly class Identifier implements \Stringable
 {
 	private const int BYTE_LENGTH = 16;
 
@@ -72,9 +60,11 @@ final readonly class Identifier
 	public static function fromBytes(string $bytes): self
 	{
 		if (\strlen($bytes) !== self::BYTE_LENGTH) {
-			throw new \InvalidArgumentException(
-				\sprintf('Identifier must be exactly %d bytes, got %d', self::BYTE_LENGTH, \strlen($bytes)),
-			);
+			throw new \InvalidArgumentException(\sprintf(
+				'Identifier must be exactly %d bytes, got %d',
+				self::BYTE_LENGTH,
+				\strlen($bytes),
+			));
 		}
 
 		return new self($bytes);
@@ -95,9 +85,11 @@ final readonly class Identifier
 		$hex = \str_replace('-', '', $hex);
 
 		if (\strlen($hex) !== self::HEX_LENGTH) {
-			throw new \InvalidArgumentException(
-				\sprintf('Hex string must be exactly %d characters, got %d', self::HEX_LENGTH, \strlen($hex)),
-			);
+			throw new \InvalidArgumentException(\sprintf(
+				'Hex string must be exactly %d characters, got %d',
+				self::HEX_LENGTH,
+				\strlen($hex),
+			));
 		}
 
 		$bytes = \hex2bin($hex);

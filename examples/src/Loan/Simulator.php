@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering\Example\Loan;
 
 use Castor\Ledgering\AccountFlags;
@@ -80,17 +68,9 @@ final class Simulator
 
 		$ledger->execute(
 			// Revenue account (Asset) - collects fees and interest income
-			CreateAccount::with(
-				id: $revenueId,
-				ledger: 1,
-				code: AccountType::Revenue->value,
-			),
+			CreateAccount::with(id: $revenueId, ledger: 1, code: AccountType::Revenue->value),
 			// Customer cash account - customer's funds
-			CreateAccount::with(
-				id: $customerCashId,
-				ledger: 1,
-				code: AccountType::CustomerCash->value,
-			),
+			CreateAccount::with(id: $customerCashId, ledger: 1, code: AccountType::CustomerCash->value),
 			// Control account - temporary holding for repayment waterfall
 			CreateAccount::with(
 				id: $controlAccountId,
@@ -120,11 +100,7 @@ final class Simulator
 				flags: AccountFlags::CREDITS_MUST_NOT_EXCEED_DEBITS,
 			),
 			// Overpayment account - holds excess repayments
-			CreateAccount::with(
-				id: $overpaymentId,
-				ledger: 1,
-				code: AccountType::Overpayment->value,
-			),
+			CreateAccount::with(id: $overpaymentId, ledger: 1, code: AccountType::Overpayment->value),
 		);
 
 		return new self(
@@ -152,16 +128,14 @@ final class Simulator
 
 		$transferId = $this->nextTransferId();
 
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: $transferId,
-				debitAccountId: $this->principalId,
-				creditAccountId: $this->customerCashId,
-				amount: $this->principalAmount->pence,
-				ledger: 1,
-				code: TransferType::Disbursement->value,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: $transferId,
+			debitAccountId: $this->principalId,
+			creditAccountId: $this->customerCashId,
+			amount: $this->principalAmount->pence,
+			ledger: 1,
+			code: TransferType::Disbursement->value,
+		));
 
 		$this->disbursed = true;
 		$this->lastAccrualDate = $this->clock->now();
@@ -255,7 +229,8 @@ final class Simulator
 
 		// Get outstanding principal balance
 		$principal = $this->accounts->ofId($this->principalId)->one();
-		$outstandingPrincipalPence = $principal->balance->debitsPosted->value - $principal->balance->creditsPosted->value;
+		$outstandingPrincipalPence =
+			$principal->balance->debitsPosted->value - $principal->balance->creditsPosted->value;
 		$outstandingPrincipal = PoundSterling::ofPence($outstandingPrincipalPence);
 
 		if ($outstandingPrincipal->isZero()) {
@@ -277,16 +252,14 @@ final class Simulator
 
 		$transferId = $this->nextTransferId();
 
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: $transferId,
-				debitAccountId: $this->interestId,
-				creditAccountId: $this->revenueId,
-				amount: $interestAmount->pence,
-				ledger: 1,
-				code: TransferType::InterestAccrual->value,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: $transferId,
+			debitAccountId: $this->interestId,
+			creditAccountId: $this->revenueId,
+			amount: $interestAmount->pence,
+			ledger: 1,
+			code: TransferType::InterestAccrual->value,
+		));
 
 		$this->lastAccrualDate = $currentDate;
 
@@ -309,16 +282,14 @@ final class Simulator
 
 		$transferId = $this->nextTransferId();
 
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: $transferId,
-				debitAccountId: $this->feesId,
-				creditAccountId: $this->revenueId,
-				amount: $amount->pence,
-				ledger: 1,
-				code: TransferType::FeeCharge->value,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: $transferId,
+			debitAccountId: $this->feesId,
+			creditAccountId: $this->revenueId,
+			amount: $amount->pence,
+			ledger: 1,
+			code: TransferType::FeeCharge->value,
+		));
 
 		$this->transactions[] = [
 			'type' => 'fee',
@@ -340,16 +311,14 @@ final class Simulator
 
 		// Step 1: Receive payment from customer cash into control account
 		$paymentTransferId = $this->nextTransferId();
-		$this->ledger->execute(
-			CreateTransfer::with(
-				id: $paymentTransferId,
-				debitAccountId: $this->customerCashId,
-				creditAccountId: $this->controlAccountId,
-				amount: $amount->pence,
-				ledger: 1,
-				code: TransferType::PaymentReceived->value,
-			),
-		);
+		$this->ledger->execute(CreateTransfer::with(
+			id: $paymentTransferId,
+			debitAccountId: $this->customerCashId,
+			creditAccountId: $this->controlAccountId,
+			amount: $amount->pence,
+			ledger: 1,
+			code: TransferType::PaymentReceived->value,
+		));
 
 		// Step 2-5: Waterfall allocation (executed atomically in single batch)
 		$feesTransferId = $this->nextTransferId();
@@ -428,17 +397,23 @@ final class Simulator
 			'disbursed' => $this->disbursed,
 			'current_date' => $this->clock->now(),
 			'principal' => [
-				'owed' => PoundSterling::ofPence($principal->balance->debitsPosted->value - $principal->balance->creditsPosted->value),
+				'owed' => PoundSterling::ofPence(
+					$principal->balance->debitsPosted->value - $principal->balance->creditsPosted->value,
+				),
 				'paid' => PoundSterling::ofPence($principal->balance->creditsPosted->value),
 				'original' => PoundSterling::ofPence($principal->balance->debitsPosted->value),
 			],
 			'interest' => [
-				'owed' => PoundSterling::ofPence($interest->balance->debitsPosted->value - $interest->balance->creditsPosted->value),
+				'owed' => PoundSterling::ofPence(
+					$interest->balance->debitsPosted->value - $interest->balance->creditsPosted->value,
+				),
 				'paid' => PoundSterling::ofPence($interest->balance->creditsPosted->value),
 				'accrued' => PoundSterling::ofPence($interest->balance->debitsPosted->value),
 			],
 			'fees' => [
-				'owed' => PoundSterling::ofPence($fees->balance->debitsPosted->value - $fees->balance->creditsPosted->value),
+				'owed' => PoundSterling::ofPence(
+					$fees->balance->debitsPosted->value - $fees->balance->creditsPosted->value,
+				),
 				'paid' => PoundSterling::ofPence($fees->balance->creditsPosted->value),
 				'charged' => PoundSterling::ofPence($fees->balance->debitsPosted->value),
 			],

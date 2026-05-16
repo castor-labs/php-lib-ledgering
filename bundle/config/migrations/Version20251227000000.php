@@ -30,6 +30,7 @@ use Doctrine\Migrations\AbstractMigration;
  */
 final class Version20251227000000 extends AbstractMigration
 {
+	#[\Override]
 	public function getDescription(): string
 	{
 		return 'Creates the ledgering schema (ledgering_accounts, ledgering_transfers, ledgering_account_balances)';
@@ -40,9 +41,9 @@ final class Version20251227000000 extends AbstractMigration
 		Migrator::up($schema);
 	}
 
+	#[\Override]
 	public function down(Schema $schema): void
 	{
 		Migrator::down($schema);
 	}
 }
-

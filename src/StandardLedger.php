@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering;
 
 use Castor\Ledgering\Storage\AccountBalanceReader;
@@ -122,18 +110,19 @@ final readonly class StandardLedger implements Ledger
 			throw ConstraintViolation::sameDebitAndCreditAccount($command->debitAccountId);
 		}
 
-		if ($command->amount->isZero() &&
-			!$command->flags->isBalancingDebit() &&
-			!$command->flags->isBalancingCredit() &&
-			!$command->flags->isClosingDebit() &&
-			!$command->flags->isClosingCredit() &&
-			!$command->flags->isPostPending() &&
-			!$command->flags->isVoidPending()) {
+		if (
+			$command->amount->isZero()
+			&& !$command->flags->isBalancingDebit()
+			&& !$command->flags->isBalancingCredit()
+			&& !$command->flags->isClosingDebit()
+			&& !$command->flags->isClosingCredit()
+			&& !$command->flags->isPostPending()
+			&& !$command->flags->isVoidPending()
+		) {
 			throw ConstraintViolation::zeroAmount();
 		}
 
-		if (($command->flags->isPostPending() || $command->flags->isVoidPending()) &&
-			$command->pendingId->isZero()) {
+		if (($command->flags->isPostPending() || $command->flags->isVoidPending()) && $command->pendingId->isZero()) {
 			throw ConstraintViolation::pendingIdRequired();
 		}
 	}
@@ -216,9 +205,7 @@ final readonly class StandardLedger implements Ledger
 		// Determine the amount to post
 		// If command amount is 0, post the full pending amount
 		// Otherwise, post the specified amount (partial posting)
-		$amountToPost = $command->amount->isZero()
-			? $pendingTransfer->amount
-			: $command->amount;
+		$amountToPost = $command->amount->isZero() ? $pendingTransfer->amount : $command->amount;
 
 		// Validate that the amount doesn't exceed the pending amount
 		if ($amountToPost->value > $pendingTransfer->amount->value) {
@@ -392,18 +379,16 @@ final readonly class StandardLedger implements Ledger
 		$expiredTransfers = $this->transfers->expired($command->asOf)->toList();
 
 		foreach ($expiredTransfers as $transfer) {
-			$this->voidPendingTransfer(
-				CreateTransfer::with(
-					id: $this->identifiers->create(),
-					debitAccountId: $transfer->debitAccountId,
-					creditAccountId: $transfer->creditAccountId,
-					amount: 0,
-					ledger: $transfer->ledger,
-					code: $transfer->code,
-					flags: TransferFlags::VOID_PENDING,
-					pendingId: $transfer->id,
-				),
-			);
+			$this->voidPendingTransfer(CreateTransfer::with(
+				id: $this->identifiers->create(),
+				debitAccountId: $transfer->debitAccountId,
+				creditAccountId: $transfer->creditAccountId,
+				amount: 0,
+				ledger: $transfer->ledger,
+				code: $transfer->code,
+				flags: TransferFlags::VOID_PENDING,
+				pendingId: $transfer->id,
+			));
 		}
 	}
 
@@ -465,11 +450,8 @@ final readonly class StandardLedger implements Ledger
 	 * For balancing and closing transfers, the amount is computed from account balances.
 	 * Otherwise, uses the amount from the command.
 	 */
-	private function calculateAmount(
-		CreateTransfer $command,
-		Account $debitAccount,
-		Account $creditAccount,
-	): Amount {
+	private function calculateAmount(CreateTransfer $command, Account $debitAccount, Account $creditAccount): Amount
+	{
 		// When both BALANCING_DEBIT and BALANCING_CREDIT are set,
 		// use the minimum of what's available in debit and what's needed in credit
 		if ($command->flags->isBalancingDebit() && $command->flags->isBalancingCredit()) {
@@ -518,7 +500,9 @@ final readonly class StandardLedger implements Ledger
 	 */
 	private function calculateClosingAmount(Account $account): Amount
 	{
-		return $account->balance->debitsPosted
+		return $account
+			->balance
+			->debitsPosted
 			->add($account->balance->debitsPending)
 			->add($account->balance->creditsPosted)
 			->add($account->balance->creditsPending);

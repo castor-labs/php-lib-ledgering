@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering\Example;
 
 /**
@@ -22,7 +10,7 @@ namespace Castor\Ledgering\Example;
  * Internally stores the amount in pence (smallest unit) to avoid floating-point errors.
  * Provides arithmetic operations and formatting capabilities.
  */
-final readonly class PoundSterling
+final readonly class PoundSterling implements \Stringable
 {
 	/**
 	 * @param int<0, max> $pence The amount in pence (must be non-negative)
@@ -44,9 +32,7 @@ final readonly class PoundSterling
 	public static function ofPence(int $pence): self
 	{
 		if ($pence < 0) {
-			throw new \InvalidArgumentException(
-				\sprintf('Amount cannot be negative, got %d pence', $pence),
-			);
+			throw new \InvalidArgumentException(\sprintf('Amount cannot be negative, got %d pence', $pence));
 		}
 
 		return new self($pence);
@@ -62,9 +48,7 @@ final readonly class PoundSterling
 	public static function ofPounds(float $pounds): self
 	{
 		if ($pounds < 0) {
-			throw new \InvalidArgumentException(
-				\sprintf('Amount cannot be negative, got %.2f pounds', $pounds),
-			);
+			throw new \InvalidArgumentException(\sprintf('Amount cannot be negative, got %.2f pounds', $pounds));
 		}
 
 		$pence = (int) \round($pounds * 100);
@@ -94,9 +78,7 @@ final readonly class PoundSterling
 
 		$float = \filter_var($cleaned, \FILTER_VALIDATE_FLOAT);
 		if ($float === false) {
-			throw new \InvalidArgumentException(
-				\sprintf('Invalid amount format: "%s"', $amount),
-			);
+			throw new \InvalidArgumentException(\sprintf('Invalid amount format: "%s"', $amount));
 		}
 
 		return self::ofPounds($float);
@@ -128,13 +110,11 @@ final readonly class PoundSterling
 		$result = $this->pence - $other->pence;
 
 		if ($result < 0) {
-			throw new \InvalidArgumentException(
-				\sprintf(
-					'Cannot subtract %s from %s (result would be negative)',
-					$other->format(),
-					$this->format(),
-				),
-			);
+			throw new \InvalidArgumentException(\sprintf(
+				'Cannot subtract %s from %s (result would be negative)',
+				$other->format(),
+				$this->format(),
+			));
 		}
 
 		return new self($result);
@@ -152,9 +132,7 @@ final readonly class PoundSterling
 		$result = (int) \round($this->pence * $factor);
 
 		if ($result < 0) {
-			throw new \InvalidArgumentException(
-				\sprintf('Cannot multiply by negative factor: %s', $factor),
-			);
+			throw new \InvalidArgumentException(\sprintf('Cannot multiply by negative factor: %s', $factor));
 		}
 
 		return new self($result);
@@ -165,7 +143,7 @@ final readonly class PoundSterling
 	 */
 	public function format(): string
 	{
-		return '£'.\number_format($this->pence / 100, 2);
+		return '£' . \number_format($this->pence / 100, 2);
 	}
 
 	/**

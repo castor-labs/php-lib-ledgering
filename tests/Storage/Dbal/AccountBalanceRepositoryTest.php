@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering\Storage\Dbal;
 
 use Castor\Ledgering\AccountBalance;
@@ -69,11 +57,7 @@ final class AccountBalanceRepositoryTest extends TestCase
 
 		$accountId = Identifier::random();
 
-		$balance1 = new AccountBalance(
-			accountId: $accountId,
-			balance: Balance::zero(),
-			timestamp: Instant::of(1000),
-		);
+		$balance1 = new AccountBalance(accountId: $accountId, balance: Balance::zero(), timestamp: Instant::of(1000));
 
 		$balance2 = new AccountBalance(
 			accountId: $accountId,
@@ -325,7 +309,9 @@ final class AccountBalanceRepositoryTest extends TestCase
 		$repository->write(new AccountBalance($accountId1, Balance::zero(), Instant::of(1000)));
 		$repository->write(new AccountBalance($accountId2, Balance::zero(), Instant::of(2000)));
 
-		$map = $repository->ofAccountId($accountId1, $accountId2)->toMap(static fn(AccountBalance $b) => $b->accountId->toHex());
+		$map = $repository
+			->ofAccountId($accountId1, $accountId2)
+			->toMap(static fn(AccountBalance $b) => $b->accountId->toHex());
 
 		self::assertCount(2, $map);
 		self::assertArrayHasKey($accountId1->toHex(), $map);
@@ -345,7 +331,9 @@ final class AccountBalanceRepositoryTest extends TestCase
 		$repository->write(new AccountBalance($accountId1, Balance::zero(), Instant::of(2000)));
 		$repository->write(new AccountBalance($accountId2, Balance::zero(), Instant::of(3000)));
 
-		$map = $repository->ofAccountId($accountId1, $accountId2)->toListMap(static fn(AccountBalance $b) => $b->accountId->toHex());
+		$map = $repository
+			->ofAccountId($accountId1, $accountId2)
+			->toListMap(static fn(AccountBalance $b) => $b->accountId->toHex());
 
 		self::assertCount(2, $map);
 		self::assertCount(2, $map[$accountId1->toHex()]);

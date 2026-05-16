@@ -11,18 +11,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering;
 
 use Castor\Ledgering\Time\Clock;
@@ -36,15 +24,12 @@ use Castor\Ledgering\Time\Instant;
  */
 final class FixedClock implements Clock
 {
-	private int $time;
-
 	/**
-	 * @param int $timestamp Initial Unix timestamp in seconds
+	 * @param int $time Initial Unix timestamp in seconds
 	 */
-	private function __construct(int $timestamp = 1704067200)
-	{
-		$this->time = $timestamp;
-	}
+	private function __construct(
+		private int $time = 1704067200,
+	) {}
 
 	/**
 	 * Creates a new FixedClock starting at the given timestamp.

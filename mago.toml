@@ -1,0 +1,20 @@
+php-version = "8.3.0"
+
+[source]
+workspace = "."
+paths = ["src", "bundle", "tests", "examples"]
+includes = ["vendor"]
+excludes = [".dev", ".github", "vendor"]
+
+[formatter]
+print-width = 120
+tab-width = 4
+use-tabs = true
+
+[linter]
+integrations = ["phpunit"]
+baseline = ".dev/mago/linter-issues.toml"
+
+[analyzer]
+baseline = ".dev/mago/analyzer-issues.toml"
+plugins = []

@@ -2,11 +2,13 @@
 /vendor export-ignore
 /tests export-ignore
 /.dev export-ignore
-/.php-cs-fixer.dist.php export-ignore
 /compose.yml export-ignore
 /composer.lock export-ignore
 /phpunit.xml export-ignore
-/psalm.xml export-ignore
-/psalm-baseline.xml export-ignore
 /.gitignore export-ignore
 /README.md export-ignore
+/devenv.lock export-ignore
+/devenv.nix export-ignore
+/devenv.yaml export-ignore
+/mago.toml export-ignore
+/rector.php export-ignore

@@ -1,0 +1,571 @@
+variant = "loose"
+
+[[issues]]
+file = "bundle/config/definition.php"
+code = "strict-types"
+message = "Missing `declare(strict_types=1);` statement at the beginning of the file."
+count = 1
+
+[[issues]]
+file = "bundle/config/services/idempotency.php"
+code = "no-redundant-use"
+message = "Unused import: `Ledger`."
+count = 1
+
+[[issues]]
+file = "bundle/tests/Command/ExpirePendingTransfersTest.php"
+code = "no-redundant-use"
+message = "Unused import: `CreateAccount`."
+count = 1
+
+[[issues]]
+file = "bundle/tests/Command/ExpirePendingTransfersTest.php"
+code = "no-redundant-use"
+message = "Unused import: `CreateTransfer`."
+count = 1
+
+[[issues]]
+file = "bundle/tests/Command/ExpirePendingTransfersTest.php"
+code = "prefer-static-closure"
+message = "This closure does not use `$this` and should be declared static."
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "function-name"
+message = "Function name `formatDate` should be in snake case."
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "function-name"
+message = "Function name `printHelp` should be in snake case."
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "function-name"
+message = "Function name `printStatus` should be in snake case."
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "function-name"
+message = "Function name `printTransactions` should be in snake case."
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "literal-named-argument"
+message = "Literal argument `2` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "no-else-clause"
+message = "Avoid `else` clauses."
+count = 2
+
+[[issues]]
+file = "examples/loan-repl.php"
+code = "no-empty"
+message = "Use of the `empty` construct."
+count = 3
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "excessive-parameter-list"
+message = "Parameter list is too long."
+count = 1
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "literal-named-argument"
+message = "Literal argument `'0'` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "literal-named-argument"
+message = "Literal argument `0` should be passed as a named argument for clarity."
+count = 2
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "literal-named-argument"
+message = "Literal argument `1` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "literal-named-argument"
+message = "Literal argument `32` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 3
+
+[[issues]]
+file = "examples/src/Loan/Simulator.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "examples/src/PoundSterling.php"
+code = "literal-named-argument"
+message = "Literal argument `''` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "examples/src/PoundSterling.php"
+code = "literal-named-argument"
+message = "Literal argument `2` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "examples/src/PoundSterling.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "examples/src/Rate.php"
+code = "literal-named-argument"
+message = "Literal argument `'%'` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "examples/src/Rate.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "src/Account.php"
+code = "excessive-parameter-list"
+message = "Parameter list is too long."
+count = 1
+
+[[issues]]
+file = "src/AccountFlags.php"
+code = "no-redundant-math"
+message = "Redundant shift operation: shifting by `0` bits is unnecessary."
+count = 1
+
+[[issues]]
+file = "src/AccountFlags.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "src/ConstraintViolation.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "src/CreateAccount.php"
+code = "excessive-parameter-list"
+message = "Parameter list is too long."
+count = 2
+
+[[issues]]
+file = "src/CreateTransfer.php"
+code = "excessive-parameter-list"
+message = "Parameter list is too long."
+count = 2
+
+[[issues]]
+file = "src/Identifier.php"
+code = "literal-named-argument"
+message = "Literal argument `''` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "src/Identifier.php"
+code = "literal-named-argument"
+message = "Literal argument `0` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "src/Identifier.php"
+code = "literal-named-argument"
+message = "Literal argument `12` should be passed as a named argument for clarity."
+count = 2
+
+[[issues]]
+file = "src/Identifier.php"
+code = "literal-named-argument"
+message = "Literal argument `16` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "src/Identifier.php"
+code = "literal-named-argument"
+message = "Literal argument `20` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "src/Identifier.php"
+code = "literal-named-argument"
+message = "Literal argument `4` should be passed as a named argument for clarity."
+count = 3
+
+[[issues]]
+file = "src/Identifier.php"
+code = "literal-named-argument"
+message = "Literal argument `8` should be passed as a named argument for clarity."
+count = 2
+
+[[issues]]
+file = "src/Identifier.php"
+code = "literal-named-argument"
+message = "Literal argument `true` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "src/Identifier.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "src/StandardLedger.php"
+code = "cyclomatic-complexity"
+message = "Class has high complexity."
+count = 1
+
+[[issues]]
+file = "src/StandardLedger.php"
+code = "halstead"
+message = "Method has a high halstead difficulty"
+count = 1
+
+[[issues]]
+file = "src/StandardLedger.php"
+code = "kan-defect"
+message = "Class has a high kan defect score."
+count = 1
+
+[[issues]]
+file = "src/StandardLedger.php"
+code = "no-boolean-flag-parameter"
+message = "Avoid boolean flag parameters."
+count = 1
+
+[[issues]]
+file = "src/StandardLedger.php"
+code = "no-else-clause"
+message = "Avoid `else` clauses."
+count = 1
+
+[[issues]]
+file = "src/StandardLedger.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/Migrator.php"
+code = "halstead"
+message = "Method has a high halstead volume"
+count = 1
+
+[[issues]]
+file = "src/Storage/Dbal/Repository.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "src/Storage/InMemory/AccountCollection.php"
+code = "prefer-early-continue"
+message = "Consider using early continue pattern to reduce nesting."
+count = 1
+
+[[issues]]
+file = "src/Storage/InMemory/TransferCollection.php"
+code = "cyclomatic-complexity"
+message = "Class has high complexity."
+count = 1
+
+[[issues]]
+file = "src/Storage/InMemory/TransferCollection.php"
+code = "kan-defect"
+message = "Class has a high kan defect score."
+count = 1
+
+[[issues]]
+file = "src/Storage/InMemory/TransferCollection.php"
+code = "prefer-early-continue"
+message = "Consider using early continue pattern to reduce nesting."
+count = 1
+
+[[issues]]
+file = "src/Time/Duration.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 1
+
+[[issues]]
+file = "src/Time/Duration.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "src/Time/Instant.php"
+code = "literal-named-argument"
+message = "Literal argument `'0'` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "src/Time/Instant.php"
+code = "literal-named-argument"
+message = "Literal argument `1_000_000` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "src/Time/Instant.php"
+code = "literal-named-argument"
+message = "Literal argument `9` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "src/TimeOrderedMonotonic.php"
+code = "literal-named-argument"
+message = "Literal argument `2` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "src/TimeOrderedMonotonic.php"
+code = "literal-named-argument"
+message = "Literal argument `6` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "src/TimeOrderedMonotonic.php"
+code = "no-else-clause"
+message = "Avoid `else` clauses."
+count = 1
+
+[[issues]]
+file = "src/Transfer.php"
+code = "excessive-parameter-list"
+message = "Parameter list is too long."
+count = 1
+
+[[issues]]
+file = "src/TransferFlags.php"
+code = "no-redundant-math"
+message = "Redundant shift operation: shifting by `0` bits is unnecessary."
+count = 1
+
+[[issues]]
+file = "src/TransferFlags.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "tests/AccountBalanceTest.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 2
+
+[[issues]]
+file = "tests/AccountFlagsTest.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "tests/AmountTest.php"
+code = "no-else-clause"
+message = "Avoid `else` clauses."
+count = 1
+
+[[issues]]
+file = "tests/AmountTest.php"
+code = "no-else-clause"
+message = "Avoid `elseif` clauses."
+count = 1
+
+[[issues]]
+file = "tests/AmountTest.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 2
+
+[[issues]]
+file = "tests/CodeTest.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 2
+
+[[issues]]
+file = "tests/CreateTransferTest.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 1
+
+[[issues]]
+file = "tests/ExpirePendingTransfersTest.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 1
+
+[[issues]]
+file = "tests/FixedClock.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 2
+
+[[issues]]
+file = "tests/IdentifierTest.php"
+code = "assert-description"
+message = "Missing description in assert function."
+count = 1
+
+[[issues]]
+file = "tests/IdentifierTest.php"
+code = "no-error-control-operator"
+message = "Unsafe use of error control operator `@`."
+count = 1
+
+[[issues]]
+file = "tests/IdentifierTest.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "tests/Infra/Database.php"
+code = "no-isset"
+message = "Use of the `isset` construct."
+count = 1
+
+[[issues]]
+file = "tests/Loan.php"
+code = "excessive-parameter-list"
+message = "Parameter list is too long."
+count = 2
+
+[[issues]]
+file = "tests/LoanLifecycleTest.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 18
+
+[[issues]]
+file = "tests/PHPUnit/DatabaseExtension.php"
+code = "single-class-per-file"
+message = "File contains multiple class-like definitions; found class `DatabasePreparationSubscriber` but class `DatabaseExtension` is already defined in this file."
+count = 1
+
+[[issues]]
+file = "tests/PHPUnit/DatabaseExtension.php"
+code = "single-class-per-file"
+message = "File contains multiple class-like definitions; found class `DatabaseShutdownSubscriber` but class `DatabaseExtension` is already defined in this file."
+count = 1
+
+[[issues]]
+file = "tests/StandardLedgerTest.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/AccountBalanceRepositoryTest.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 4
+
+[[issues]]
+file = "tests/Storage/Dbal/AccountBalanceRepositoryTest.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/AccountRepositoryTest.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 4
+
+[[issues]]
+file = "tests/Storage/Dbal/TransactionalLedgerTest.php"
+code = "no-empty-catch-clause"
+message = "Do not use empty `catch` blocks."
+count = 1
+
+[[issues]]
+file = "tests/Storage/Dbal/TransferRepositoryTest.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 5
+
+[[issues]]
+file = "tests/Storage/Dbal/TransferRepositoryTest.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "tests/TestIdentifiers.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "tests/Time/DurationTest.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 2
+
+[[issues]]
+file = "tests/Time/DurationTest.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "tests/Time/InstantTest.php"
+code = "readable-literal"
+message = "Numeric literal could use underscore separators for readability."
+count = 11
+
+[[issues]]
+file = "tests/Time/InstantTest.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "tests/TimeOrderedMonotonicTest.php"
+code = "assert-description"
+message = "Missing description in assert function."
+count = 1
+
+[[issues]]
+file = "tests/TimeOrderedMonotonicTest.php"
+code = "literal-named-argument"
+message = "Literal argument `0` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "tests/TimeOrderedMonotonicTest.php"
+code = "literal-named-argument"
+message = "Literal argument `6` should be passed as a named argument for clarity."
+count = 3
+
+[[issues]]
+file = "tests/TransferFlagsTest.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1

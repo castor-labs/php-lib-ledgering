@@ -2,18 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * @project Castor Ledgering
- * @link https://github.com/castor-labs/php-lib-ledgering
- * @package castor/ledgering
- * @author Matias Navarro-Carter mnavarrocarter@gmail.com
- * @license MIT
- * @copyright 2024-2026 CastorLabs Ltd
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Castor\Ledgering\Infra;
 
 use Castor\Ledgering\Storage\Dbal\Migrator;
@@ -48,8 +36,8 @@ final class Database
 
 			if ($uri === false || $uri === null || $uri === '') {
 				throw new \RuntimeException(
-					'TEST_DATABASE_URI environment variable is not set. '.
-					'Please set it to a valid database connection string (e.g., pgsql://user:pass@localhost/test_db)',
+					'TEST_DATABASE_URI environment variable is not set. '
+					. 'Please set it to a valid database connection string (e.g., pgsql://user:pass@localhost/test_db)',
 				);
 			}
 
