@@ -41,7 +41,7 @@
   ],
   "require": {
     "castor/functions": "^1.0",
-    "doctrine/dbal": "^4.3",
+    "doctrine/dbal": "^4.4",
     "nikic/php-parser": "^5.4",
     "php": ">=8.3",
     "symfony/dependency-injection": "^7.0",
