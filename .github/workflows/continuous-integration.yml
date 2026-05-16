@@ -156,7 +156,7 @@ jobs:
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
         with:
-          coverage: "none"
+          coverage: "xdebug"
           php-version: "8.3"
           ini-values: memory_limit=-1
           tools: composer:v2
