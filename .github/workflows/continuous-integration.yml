@@ -122,7 +122,7 @@ jobs:
             db_uri: "sqlsrv://sa:Secret123!@localhost:1433/ledgering"
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:8.4
         env:
           MYSQL_DATABASE: ledgering
           MYSQL_USER: user
