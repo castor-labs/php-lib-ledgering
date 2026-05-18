@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/castor-labs/php-lib-ledgering/compare/0.3.0...0.4.0) (2026-05-16)
+
+
+### Features
+
+* Toolchain migration ([#32](https://github.com/castor-labs/php-lib-ledgering/issues/32)) ([c5e371b](https://github.com/castor-labs/php-lib-ledgering/commit/c5e371bc82a10237a60e3401de777d3b8ea46778))
+
 ## [0.3.0](https://github.com/castor-labs/php-lib-ledgering/compare/0.2.0...0.3.0) (2026-04-24)
 
 
