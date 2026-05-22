@@ -1,4 +1,7 @@
-# Castor Ledgering Documentation
+---
+description: Explore Castor Ledgering concepts, integration patterns, and practical guides.
+---
+# Documentation
 
 **Build financial systems with confidence using double-entry bookkeeping, powered by Castor Ledgering.**
 
@@ -8,7 +11,7 @@ Welcome! Whether you're building a payment platform, a lending system, or a mark
 
 New to Castor Ledgering? Start with these:
 
-1. **[Quick Start](../README.md#quick-start)** - Get up and running in 5 minutes
+1. **[Getting started](getting-started.md)** - Install the package, create your first ledger, and try the loan simulator
 2. **[Domain Model](domain-model.md)** - Understand accounts, transfers, and balances
 3. **[Working with the Library](working-with-the-library.md)** - Learn integration patterns
 
