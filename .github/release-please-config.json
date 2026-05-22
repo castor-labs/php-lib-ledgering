@@ -28,6 +28,14 @@
     "pull-request-header": "New release",
     "pull-request-footer": "",
     "packages": {
-        ".": {}
+        ".": {
+            "extra-files": [
+                {
+                    "type": "json",
+                    "path": "composer.json",
+                    "jsonpath": "$.version"
+                }
+            ]
+        }
     }
 }

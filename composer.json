@@ -3,14 +3,17 @@
   "description": "Double-entry bookkeeping library for PHP",
   "keywords": [
     "castor",
+    "ledgering",
     "ledger",
     "accounting",
     "double-entry",
     "bookkeeping",
-    "php",
-    "php83"
+    "finance",
+    "transactions",
+    "php"
   ],
-  "homepage": "https://github.com/castor-labs/php-lib-ledgering",
+  "version": "0.4.0",
+  "homepage": "https://castor-labs.github.io/php-lib-ledgering/",
   "minimum-stability": "stable",
   "license": "MIT",
   "authors": [
@@ -51,6 +54,7 @@
     "ext-decimal": "*",
     "brick/date-time": "^0.9.0",
     "carthage-software/mago": "^1.27.1",
+    "castor-labs/docs": "^0.1.0",
     "doctrine/migrations": "^3.0",
     "phpunit/phpunit": "^10.5",
     "rector/rector": "^2.4",
@@ -89,7 +93,12 @@
     "test": "phpunit --colors",
     "test:unit": "phpunit --colors --exclude-group=integration,e2e,dbal,bundle",
     "test:e2e": "phpunit --colors --group=e2e",
-    "test:integration": "phpunit --colors --group=integration,dbal,bundle"
+    "test:integration": "phpunit --colors --group=integration,dbal,bundle",
+    "docs:build": "@php vendor/bin/castor-docs generate --source=.dev/docs --target=.dev/docs-dist",
+    "docs:check": [
+      "@docs:build",
+      "test -f .dev/docs-dist/index.html"
+    ]
   },
   "config": {
     "sort-packages": true,
