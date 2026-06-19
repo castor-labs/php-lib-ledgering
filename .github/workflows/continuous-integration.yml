@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout Code"
-        uses: "actions/checkout@v6"
+        uses: "actions/checkout@v7"
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
         with:
@@ -70,7 +70,7 @@ jobs:
       TEST_DATABASE_URI: postgres://user:secret@127.0.0.1:5432/ledgering
     steps:
       - name: "Checkout Code"
-        uses: "actions/checkout@v6"
+        uses: "actions/checkout@v7"
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
         with:
@@ -152,7 +152,7 @@ jobs:
       TEST_DATABASE_URI: ${{ matrix.db_uri }}
     steps:
       - name: "Checkout Code"
-        uses: "actions/checkout@v6"
+        uses: "actions/checkout@v7"
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
         with:
