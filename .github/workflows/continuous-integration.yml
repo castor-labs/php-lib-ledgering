@@ -27,7 +27,7 @@ jobs:
         run: |
           echo "dir=$(composer -q config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: "Cache Dependencies"
-        uses: "actions/cache@v5"
+        uses: "actions/cache@v6"
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: "composer-8.3-checks-${{ hashFiles('composer.lock') }}"
@@ -84,7 +84,7 @@ jobs:
         run: |
           echo "dir=$(composer -q config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: "Cache Dependencies"
-        uses: "actions/cache@v5"
+        uses: "actions/cache@v6"
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: "composer-${{ matrix.php-version }}-${{ matrix.deps }}-${{ hashFiles('composer.lock') }}"
@@ -173,7 +173,7 @@ jobs:
         run: |
           echo "dir=$(composer -q config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: "Cache Dependencies"
-        uses: "actions/cache@v5"
+        uses: "actions/cache@v6"
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: "composer-8.3-db-${{ matrix.db }}-${{ hashFiles('composer.lock') }}"
